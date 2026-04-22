@@ -6,9 +6,47 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.apps import apps
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.serializers import serialize
 from .models import Author, Book, Library
 from .sandbox import validate_code
+
+
+@contextlib.contextmanager
+def enforced_validation():
+    """
+    Monkey-patch models.Model.save to call full_clean() before saving.
+    This ensures that Django's validation (max_length, blank, etc.) is enforced.
+    """
+    original_save = models.Model.save
+
+    def validated_save(self, *args, **kwargs):
+        # We call full_clean() to trigger Django's field validation.
+        # This will raise a ValidationError if constraints are violated.
+        self.full_clean()
+        return original_save(self, *args, **kwargs)
+
+    models.Model.save = validated_save
+    try:
+        yield
+    finally:
+        models.Model.save = original_save
+
+
+def format_validation_error(e):
+    """
+    Format a Django ValidationError into a human-readable string.
+    Handles field-specific errors and general __all__ errors (like UniqueConstraint).
+    """
+    error_msg = "Validation Error:\n"
+    if hasattr(e, 'message_dict'):
+        for field, errors in e.message_dict.items():
+            # '__all__' usually contains non-field-specific errors like UniqueConstraint
+            field_display = "Constraint/General" if field == "__all__" else field
+            error_msg += f"- {field_display}: {', '.join(errors)}\n"
+    else:
+        error_msg += f"- {str(e)}"
+    return error_msg
 
 
 def serialize_value(val):
@@ -124,6 +162,20 @@ def get_tables_data(env=None):
                         obj.objects.create()
                     except Exception:
                         pass
+                else:
+                    # Table exists, check for missing columns
+                    with connection.cursor() as cursor:
+                        description = connection.introspection.get_table_description(cursor, table_name)
+                        existing_columns = {col.name for col in description}
+
+                    for field in obj._meta.fields:
+                        # Skip if it's the primary key or already exists
+                        if field.column not in existing_columns:
+                            with connection.schema_editor() as schema_editor:
+                                try:
+                                    schema_editor.add_field(obj, field)
+                                except Exception:
+                                    pass
 
                 try:
                     instances = obj.objects.select_related().prefetch_related(
@@ -145,16 +197,27 @@ def get_tables_data(env=None):
 def reset_default_tables():
     from django.db import connection
 
-    # Reset tables (PostgreSQL)
+    vendor = connection.vendor
+    tables = [
+        'compiler_library_books',
+        'compiler_library',
+        'compiler_book',
+        'compiler_author'
+    ]
+
     with connection.cursor() as cursor:
-        cursor.execute("""
-            TRUNCATE TABLE
-            compiler_library_books,
-            compiler_library,
-            compiler_book,
-            compiler_author
-            RESTART IDENTITY CASCADE;
-        """)
+        if vendor == 'postgresql':
+            cursor.execute(f"TRUNCATE TABLE {', '.join(tables)} RESTART IDENTITY CASCADE;")
+        else:
+            # Fallback for SQLite or others
+            for table in tables:
+                cursor.execute(f"DELETE FROM {table};")
+                # Reset autoincrement for SQLite
+                if vendor == 'sqlite':
+                    try:
+                        cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table}';")
+                    except Exception:
+                        pass
 
     # Authors
     a1 = Author.objects.create(
@@ -206,6 +269,38 @@ def reset_default_tables():
     l3.books.set([b4, b1])
     l4.books.set([b2, b3])
     l5.books.set([b5, b4])
+
+
+def drop_temp_tables():
+    from django.db import connection
+    # These tables should NEVER be dropped
+    default_tables = {
+        'compiler_author',
+        'compiler_book',
+        'compiler_library',
+        'compiler_library_books',
+        'django_migrations',
+        'django_content_type',
+        'django_session',
+        'auth_permission',
+        'auth_group',
+        'auth_group_permissions',
+        'auth_user',
+        'auth_user_groups',
+        'auth_user_user_permissions',
+        'django_admin_log'
+    }
+
+    with connection.cursor() as cursor:
+        all_tables = connection.introspection.table_names(cursor)
+        for table in all_tables:
+            # Drop any compiler_ tables that are not in the default list
+            if table.startswith('compiler_') and table not in default_tables:
+                try:
+                    # Use CASCADE if supported (PostgreSQL), otherwise ignore error
+                    cursor.execute(f'DROP TABLE IF EXISTS "{table}" CASCADE;')
+                except Exception:
+                    cursor.execute(f'DROP TABLE IF EXISTS "{table}";')
 
 
 def index(request):
@@ -285,6 +380,12 @@ def save_models(request):
             if not is_valid:
                 return JsonResponse({'status': 'error', 'output': msg})
 
+            # If model code has changed, drop the old tables first to ensure
+            # that new constraints (Unique, Check, etc.) are applied to the fresh schema.
+            old_code = request.session.get('temp_models_code', '')
+            if models_code != old_code:
+                drop_temp_tables()
+
             request.session['temp_models_code'] = models_code
             request.session.modified = True
 
@@ -297,7 +398,8 @@ def save_models(request):
                 '__name__': 'compiler.models'
             }
 
-            exec(models_code, env)
+            with enforced_validation():
+                exec(models_code, env)
 
             tables_data = get_tables_data(env)
 
@@ -307,6 +409,8 @@ def save_models(request):
                 'tables_data': tables_data
             })
 
+        except ValidationError as e:
+            return JsonResponse({"status": "error", "output": format_validation_error(e)})
         except Exception:
             return JsonResponse({'status': 'error', 'output': traceback.format_exc()})
 
@@ -333,19 +437,22 @@ def execute_query(request):
             if temp_models_code:
                 exec(temp_models_code, env)
 
-            output_buffer = io.StringIO()
-            with contextlib.redirect_stdout(output_buffer):
-                try:
-                    result = eval(query_code, env)
-                    if result is not None:
-                        print(result)
-                except SyntaxError:
-                    exec(query_code, env)
+            with enforced_validation():
+                output_buffer = io.StringIO()
+                with contextlib.redirect_stdout(output_buffer):
+                    try:
+                        result = eval(query_code, env)
+                        if result is not None:
+                            print(result)
+                    except SyntaxError:
+                        exec(query_code, env)
 
             output = output_buffer.getvalue()
             tables_data = get_tables_data(env)
             return JsonResponse({'status': 'success', 'output': output, 'tables_data': tables_data})
 
+        except ValidationError as e:
+            return JsonResponse({"status": "error", "output": format_validation_error(e)})
         except Exception:
             return JsonResponse({'status': 'error', 'output': traceback.format_exc()})
 
@@ -353,6 +460,9 @@ def execute_query(request):
 
 
 def reset_session(request):
+    drop_temp_tables()
+    reset_default_tables()
     request.session.flush()
     request.session.create()
+    request.session['db_initialized'] = True
     return redirect('dashboard')

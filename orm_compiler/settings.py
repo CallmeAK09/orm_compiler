@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'orm_compiler.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-import os
+# import os
 import dj_database_url
 
 DATABASES = {
