@@ -6,625 +6,662 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ORM Studio — {{ request.user.username|default:"Dashboard" }}</title>
 
-<!-- Favicon: inline SVG as data URI -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect x='2' y='2' width='30' height='30' rx='7' stroke='%2300f5ff' stroke-width='1.5' fill='%23050a0f'/%3E%3Cpath d='M9 17 L15.5 10 L22 17 L15.5 24 Z' stroke='%2300f5ff' stroke-width='1.5' fill='rgba(0,245,255,0.07)'/%3E%3Cpath d='M17 10.5 L23.5 17 L17 23.5' stroke='%2300ff9f' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='17' cy='17' r='2.2' fill='%2300f5ff'/%3E%3C/svg%3E">
 
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ═══════════════════════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --neon-cyan:   #00f5ff;
-    --neon-green:  #00ff9f;
-    --neon-blue:   #0080ff;
-    --bg-void:     #050a0f;
-    --bg-panel:    #07111c;
-    --bg-surface:  #0c1825;
-    --bg-elevated: #112233;
-    --border-glow: rgba(0,245,255,0.18);
-    --border-dim:  rgba(0,245,255,0.08);
-    --text-bright: #c8eaf5;
-    --text-mid:    #7ab8cc;
-    --text-dim:    #2a5060;
-    --glow-cyan:   0 0 8px rgba(0,245,255,0.5), 0 0 22px rgba(0,245,255,0.15);
-    --glow-green:  0 0 8px rgba(0,255,159,0.5), 0 0 22px rgba(0,255,159,0.15);
-  }
+:root {
+  --neon-cyan:    #00f5ff;
+  --neon-green:   #00ff9f;
+  --neon-blue:    #0080ff;
+  --neon-violet:  #7b5ea7;
+  --bg-void:      #050a0f;
+  --bg-panel:     #07111c;
+  --bg-surface:   #0c1825;
+  --bg-elevated:  #0f1f30;
+  --border-glow:  rgba(0,245,255,0.18);
+  --border-dim:   rgba(0,245,255,0.07);
+  --text-bright:  #c8eaf5;
+  --text-mid:     #6aa8bf;
+  --text-dim:     #244050;
+  --scrollbar-bg: #07111c;
+  --scrollbar-thumb: rgba(0,180,210,0.25);
+  --scrollbar-thumb-hover: rgba(0,245,255,0.45);
+  --beam-color:   rgba(0,245,255,0.85);
+  --beam-green:   rgba(0,255,159,0.7);
+}
 
-  html, body {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg-void);
-    color: var(--text-bright);
-    height: 100%;
-    overflow: hidden;
-  }
+html, body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-void);
+  color: var(--text-bright);
+  height: 100%;
+  overflow: hidden;
+}
 
-  /* scanline overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
+/* ── Themed global scrollbars ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+* { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg); }
 
-  /* ── NAVBAR ─────────────────────────────── */
-  nav.orm-nav {
-    height: 54px;
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border-glow);
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(0,245,255,0.06);
-    gap: 8px;
-  }
-  .orm-logo {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    text-decoration: none;
-    flex-shrink: 0;
-    user-select: none;
-  }
-  .orm-logo-icon { width: 30px; height: 30px; flex-shrink: 0; }
-  .orm-logo-icon svg { width: 30px; height: 30px; filter: drop-shadow(0 0 6px rgba(0,245,255,0.7)); }
-  .orm-logo-label { display: flex; flex-direction: column; }
-  .orm-logo-text {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 17px;
-    letter-spacing: 2.5px;
-    background: linear-gradient(90deg, var(--neon-cyan) 0%, var(--neon-green) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: uppercase;
-    line-height: 1.1;
-  }
-  .orm-logo-sub {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    font-weight: 500;
-    line-height: 1;
-  }
-  .orm-nav-spacer { flex: 1; }
+/* ── Subtle noise grain overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9996; opacity: 0.6;
+}
 
-  /* Exit/Reset hint badge */
-  .exit-hint {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border: 1px solid rgba(204,68,85,0.3);
-    border-radius: 20px;
-    background: rgba(204,68,85,0.05);
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .exit-hint:hover {
-    border-color: rgba(255,80,96,0.6);
-    background: rgba(255,80,96,0.1);
-    box-shadow: 0 0 10px rgba(255,80,96,0.15);
-  }
-  .exit-hint svg { width: 12px; height: 12px; color: #cc4455; flex-shrink: 0; }
-  .exit-hint span {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
-    letter-spacing: 1.2px;
-    color: #cc4455;
-    text-transform: uppercase;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  /* hide label on very small screens */
-  @media (max-width: 480px) {
-    .exit-hint span { display: none; }
-    .exit-hint { padding: 5px 8px; }
-  }
+/* ── Scanlines ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.018) 2px, rgba(0,0,0,0.018) 4px
+  );
+  pointer-events: none; z-index: 9995;
+}
 
-  .orm-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 9px;
-    border: 1px solid var(--border-dim);
-    border-radius: 20px;
-    background: rgba(0,255,159,0.03);
-    flex-shrink: 0;
-  }
-  .status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--neon-green);
-    box-shadow: 0 0 7px var(--neon-green);
-    animation: pulse-dot 2s ease-in-out infinite;
-    flex-shrink: 0;
-  }
-  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
-  .status-text {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-  /* hide status on small screens */
-  @media (max-width: 560px) {
-    .orm-status { display: none; }
-  }
+/* ═══════════════════════════════════════════════════════
+   VIEWPORT-WIDE BEAM BORDER
+   A single element fixed to the viewport edges that travels
+   a glowing beam around the entire screen perimeter.
+═══════════════════════════════════════════════════════ */
+@property --vb-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
 
-  /* ── PROFILE ─────────── */
-  .orm-profile {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 4px 9px 4px 4px;
-    border: 1px solid var(--border-glow);
-    border-radius: 28px;
-    cursor: pointer;
-    background: rgba(0,245,255,0.03);
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-    position: relative;
-    user-select: none;
-    flex-shrink: 0;
-  }
-  .orm-profile:hover {
-    border-color: rgba(0,245,255,0.5);
-    background: rgba(0,245,255,0.07);
-    box-shadow: 0 0 10px rgba(0,245,255,0.1);
-  }
-  .orm-profile.is-open {
-    border-color: var(--neon-cyan);
-    background: rgba(0,245,255,0.08);
-    box-shadow: var(--glow-cyan);
-  }
-  .profile-avatar {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 10px; font-weight: 700;
-    color: var(--bg-void);
-    flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(0,255,159,0.35);
-    overflow: hidden;
-  }
-  .profile-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-  .profile-name {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 600; font-size: 13px;
-    color: var(--text-bright);
-    letter-spacing: 0.5px;
-    max-width: 90px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  @media (max-width: 480px) { .profile-name { display: none; } }
-  .profile-chevron { width: 10px; height: 6px; flex-shrink: 0; transition: transform 0.2s; }
-  .orm-profile.is-open .profile-chevron { transform: rotate(180deg); }
-  .profile-dropdown {
-    display: none;
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glow);
-    border-radius: 10px;
-    min-width: 190px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.75), 0 0 20px rgba(0,245,255,0.06);
-    overflow: hidden;
-    z-index: 2000;
-    animation: drop-in 0.18s ease-out;
-  }
-  @keyframes drop-in {
-    from { opacity:0; transform:translateY(-8px) scale(0.97); }
-    to   { opacity:1; transform:translateY(0) scale(1); }
-  }
-  .orm-profile.is-open .profile-dropdown { display: block; }
-  .drop-head {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px;
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border-dim);
-  }
-  .drop-head-av {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px; font-weight: 700;
-    color: var(--bg-void); flex-shrink: 0; overflow: hidden;
-  }
-  .drop-head-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-  .drop-head-name {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 13px; font-weight: 700;
-    color: var(--text-bright); letter-spacing: 0.5px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .drop-head-role {
-    font-size: 10px; color: var(--text-dim);
-    font-family: 'Rajdhani', sans-serif;
-    letter-spacing: 1px; text-transform: uppercase;
-  }
-  .drop-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px;
-    font-size: 12px; color: var(--text-mid);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 500; letter-spacing: 0.5px;
-    text-decoration: none;
-  }
-  .drop-item:hover { background: rgba(0,245,255,0.07); color: var(--neon-cyan); }
-  .drop-item svg { width:13px; height:13px; flex-shrink:0; opacity:0.75; }
-  .drop-divider { height:1px; background:var(--border-dim); margin:3px 0; }
-  .drop-item.danger { color: #cc4455; }
-  .drop-item.danger svg { opacity: 1; }
-  .drop-item.danger:hover { background: rgba(255,50,80,0.07); color: #ff5060; }
+#viewport-beam {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  /* We use a border-image approach for the perimeter beam */
+  border: 2px solid transparent;
+  border-image: conic-gradient(
+    from var(--vb-angle),
+    transparent 0%,
+    var(--beam-color) 5%,
+    rgba(0,245,255,0.3) 9%,
+    transparent 13%,
+    transparent 47%,
+    var(--beam-green) 52%,
+    rgba(0,255,159,0.3) 56%,
+    transparent 60%,
+    transparent 100%
+  ) 1;
+  animation: vb-spin 6s linear infinite;
+}
 
-  /* ── APP LAYOUT ─────────────────────────
-     Desktop: top-section (left/right) + bottom-section
-     Mobile:  stack all vertically, scrollable
-  ─────────────────────────────────────── */
-  .app-container {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 54px);
-    overflow: hidden;
-  }
+@keyframes vb-spin {
+  to { --vb-angle: 360deg; }
+}
 
-  /* Top section: left + right side by side on desktop */
-  .top-section {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    border-bottom: 1px solid var(--border-glow);
-    overflow: hidden;
-    position: relative;
+/* Fallback: if @property not supported, use outline pulse */
+@supports not (background: conic-gradient(from 0deg, red, blue)) {
+  #viewport-beam {
+    border: none;
+    outline: 1px solid rgba(0,245,255,0.15);
+    animation: vb-pulse-fallback 3s ease-in-out infinite;
   }
+  @keyframes vb-pulse-fallback {
+    0%,100% { outline-color: rgba(0,245,255,0.1); }
+    50%      { outline-color: rgba(0,245,255,0.4); }
+  }
+}
 
-  /* Resizable panes */
+/* ── Glow pulse on panel edges ── */
+.panel-glow {
+  box-shadow:
+    inset 0 0 30px rgba(0,245,255,0.02),
+    0 0 0 1px var(--border-dim);
+  transition: box-shadow 0.4s;
+}
+.panel-glow:focus-within {
+  box-shadow:
+    inset 0 0 40px rgba(0,245,255,0.04),
+    0 0 0 1px rgba(0,245,255,0.22),
+    0 0 20px rgba(0,245,255,0.06);
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════════════ */
+nav.orm-nav {
+  height: 54px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-glow);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  position: sticky; top: 0; z-index: 1000;
+  box-shadow: 0 2px 32px rgba(0,0,0,0.6), 0 1px 0 rgba(0,245,255,0.07);
+  gap: 8px;
+  overflow: visible;
+}
+nav.orm-nav::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  height: 1px;
+  width: 120px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-green), transparent);
+  animation: nav-beam 3.5s linear infinite;
+  border-radius: 1px;
+}
+@keyframes nav-beam {
+  0%   { left: -140px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* ── Logo ── */
+.orm-logo {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none; flex-shrink: 0; user-select: none;
+}
+.orm-logo-icon { width: 30px; height: 30px; flex-shrink: 0; }
+.orm-logo-icon svg {
+  width: 30px; height: 30px;
+  filter: drop-shadow(0 0 7px rgba(0,245,255,0.8));
+  animation: logo-pulse 3s ease-in-out infinite;
+}
+@keyframes logo-pulse {
+  0%,100% { filter: drop-shadow(0 0 7px rgba(0,245,255,0.8)); }
+  50%      { filter: drop-shadow(0 0 14px rgba(0,245,255,1)) drop-shadow(0 0 28px rgba(0,255,159,0.4)); }
+}
+.orm-logo-label { display: flex; flex-direction: column; }
+.orm-logo-text {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 17px;
+  letter-spacing: 2.5px;
+  background: linear-gradient(90deg, var(--neon-cyan) 0%, var(--neon-green) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-transform: uppercase; line-height: 1.1;
+}
+.orm-logo-sub {
+  font-family: 'Rajdhani', sans-serif; font-size: 9px;
+  letter-spacing: 3px; color: var(--text-dim);
+  text-transform: uppercase; font-weight: 500; line-height: 1;
+}
+.orm-nav-spacer { flex: 1; }
+
+/* ── Exit hint ── */
+.exit-hint {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(204,68,85,0.28);
+  border-radius: 20px;
+  background: rgba(204,68,85,0.05);
+  cursor: pointer; text-decoration: none;
+  transition: all 0.25s; flex-shrink: 0;
+  position: relative; overflow: hidden;
+}
+.exit-hint::after {
+  content: '';
+  position: absolute; top: 0; left: -60px;
+  width: 40px; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,80,96,0.18), transparent);
+  animation: exit-sheen 4s ease-in-out infinite;
+}
+@keyframes exit-sheen {
+  0%,100% { left: -60px; }
+  50% { left: 110%; }
+}
+.exit-hint:hover {
+  border-color: rgba(255,80,96,0.7);
+  background: rgba(255,80,96,0.1);
+  box-shadow: 0 0 14px rgba(255,80,96,0.2);
+}
+.exit-hint svg { width: 12px; height: 12px; color: #cc4455; flex-shrink: 0; }
+.exit-hint span {
+  font-family: 'Rajdhani', sans-serif; font-size: 11px;
+  letter-spacing: 1.2px; color: #cc4455;
+  text-transform: uppercase; font-weight: 600; white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .exit-hint span { display: none; }
+  .exit-hint { padding: 5px 8px; }
+}
+
+/* ── Profile ── */
+.orm-profile {
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 9px 4px 4px;
+  border: 1px solid var(--border-glow);
+  border-radius: 28px; cursor: pointer;
+  background: rgba(0,245,255,0.03);
+  transition: all 0.2s; position: relative;
+  user-select: none; flex-shrink: 0;
+}
+.orm-profile:hover {
+  border-color: rgba(0,245,255,0.5);
+  background: rgba(0,245,255,0.07);
+  box-shadow: 0 0 12px rgba(0,245,255,0.12);
+}
+.orm-profile.is-open {
+  border-color: var(--neon-cyan);
+  background: rgba(0,245,255,0.08);
+  box-shadow: 0 0 10px rgba(0,245,255,0.35), 0 0 24px rgba(0,245,255,0.1);
+}
+.profile-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700;
+  color: var(--bg-void); flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0,255,159,0.35); overflow: hidden;
+}
+.profile-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.profile-name {
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 13px;
+  color: var(--text-bright); letter-spacing: 0.5px;
+  max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+@media (max-width: 480px) { .profile-name { display: none; } }
+.profile-chevron { width: 10px; height: 6px; flex-shrink: 0; transition: transform 0.2s; }
+.orm-profile.is-open .profile-chevron { transform: rotate(180deg); }
+
+/* Dropdown */
+.profile-dropdown {
+  display: none; position: absolute; top: calc(100% + 10px); right: 0;
+  background: var(--bg-surface); border: 1px solid var(--border-glow);
+  border-radius: 10px; min-width: 190px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8), 0 0 24px rgba(0,245,255,0.07);
+  overflow: hidden; z-index: 2000;
+  animation: drop-in 0.18s ease-out;
+}
+@keyframes drop-in {
+  from { opacity:0; transform:translateY(-8px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.orm-profile.is-open .profile-dropdown { display: block; }
+.drop-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-dim);
+}
+.drop-head-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700;
+  color: var(--bg-void); flex-shrink: 0; overflow: hidden;
+}
+.drop-head-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.drop-head-name {
+  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.drop-head-role {
+  font-size: 10px; color: var(--text-dim);
+  font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; text-transform: uppercase;
+}
+.drop-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  font-size: 12px; color: var(--text-mid); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: 'Rajdhani', sans-serif; font-weight: 500; letter-spacing: 0.5px;
+  text-decoration: none;
+}
+.drop-item:hover { background: rgba(0,245,255,0.07); color: var(--neon-cyan); }
+.drop-item svg { width:13px; height:13px; flex-shrink:0; opacity:0.75; }
+.drop-divider { height:1px; background:var(--border-dim); margin:3px 0; }
+.drop-item.danger { color: #cc4455; }
+.drop-item.danger svg { opacity: 1; }
+.drop-item.danger:hover { background: rgba(255,50,80,0.07); color: #ff5060; }
+
+/* ═══════════════════════════════════════════════════════
+   APP LAYOUT
+═══════════════════════════════════════════════════════ */
+.app-container {
+  display: flex; flex-direction: column;
+  height: calc(100vh - 54px); overflow: hidden;
+}
+.top-section {
+  display: flex; flex: 1; min-height: 0;
+  border-bottom: 1px solid var(--border-glow);
+  overflow: hidden; position: relative;
+}
+
+/* ── Panes ── */
+.left-pane {
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--border-glow);
+  min-width: 200px; overflow: hidden;
+  width: 50%; flex-shrink: 0;
+  background: var(--bg-panel);
+  /* No padding here — children handle their own */
+}
+
+/* ── Editor sub-panes inside left pane ── */
+.editor-sub-pane {
+  display: flex; flex-direction: column;
+  padding: 14px 14px 8px 14px;
+  min-height: 80px; overflow: hidden;
+  flex: 1; /* default equal split */
+}
+.editor-sub-pane:last-of-type {
+  padding-top: 8px;
+  padding-bottom: 14px;
+}
+
+/* ── Inner vertical resizer between the two editors ── */
+.inner-v-resizer {
+  height: 6px; cursor: row-resize;
+  background: var(--border-dim);
+  flex-shrink: 0; z-index: 10;
+  transition: background 0.2s; position: relative;
+}
+.inner-v-resizer::before {
+  content: '';
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  height: 2px; width: 48px; border-radius: 2px;
+  background: var(--text-dim); transition: background 0.2s;
+}
+.inner-v-resizer:hover,
+.inner-v-resizer.dragging {
+  background: rgba(0,245,255,0.18);
+}
+.inner-v-resizer:hover::before,
+.inner-v-resizer.dragging::before {
+  background: var(--neon-cyan);
+}
+/* Traveling light beam on inner resizer */
+.inner-v-resizer::after {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0;
+  height: 3px; width: 80px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-green), transparent);
+  animation: inner-beam 2.4s linear infinite;
+  border-radius: 2px;
+  pointer-events: none;
+}
+@keyframes inner-beam {
+  0%   { left: -90px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+.right-pane {
+  display: flex; flex-direction: column;
+  padding: 14px; flex: 1; min-width: 160px;
+  overflow: hidden; background: var(--bg-panel);
+}
+.bottom-section {
+  height: 260px; flex-shrink: 0;
+  background: var(--bg-panel);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative;
+}
+
+/* ── Drag handles ── */
+.h-resizer {
+  width: 6px; cursor: col-resize;
+  background: var(--border-dim);
+  flex-shrink: 0; z-index: 10;
+  transition: background 0.2s;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.h-resizer::after {
+  content: '⋮';
+  position: absolute; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim); font-size: 12px; line-height: 1;
+  pointer-events: none;
+}
+.h-resizer:hover, .h-resizer.dragging {
+  background: rgba(0,245,255,0.18);
+}
+.h-resizer:hover::after, .h-resizer.dragging::after { color: var(--neon-cyan); }
+
+.v-resizer {
+  height: 6px; cursor: row-resize;
+  background: var(--border-dim);
+  flex-shrink: 0; z-index: 10;
+  transition: background 0.2s; position: relative;
+}
+.v-resizer::after {
+  content: '';
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  height: 2px; width: 48px; border-radius: 2px;
+  background: var(--text-dim); transition: background 0.2s;
+}
+.v-resizer:hover, .v-resizer.dragging { background: rgba(0,245,255,0.14); }
+.v-resizer:hover::after, .v-resizer.dragging::after { background: var(--neon-cyan); }
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE
+═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  html, body { overflow: auto; height: auto; }
+  .app-container { height: auto; overflow: visible; }
+  .top-section { flex-direction: column; overflow: visible; height: auto; }
   .left-pane {
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--border-glow);
-    padding: 14px;
-    gap: 14px;
-    min-width: 180px;
-    overflow: hidden;
-    /* default 50% width, user can drag */
-    width: 50%;
-    flex-shrink: 0;
+    width: 100% !important; border-right: none;
+    border-bottom: 1px solid var(--border-glow);
+    min-height: 340px; overflow: visible; flex-shrink: 1; height: auto;
   }
-  .right-pane {
-    display: flex;
-    flex-direction: column;
-    padding: 14px;
-    flex: 1;
-    min-width: 140px;
-    overflow: hidden;
-  }
+  .right-pane { height: auto; min-height: 280px; flex-shrink: 1; overflow: visible; }
+  .bottom-section { height: auto; min-height: 260px; flex-shrink: 0; }
+  .h-resizer { display: none; }
+  .v-resizer { display: none; }
+  .inner-v-resizer { display: none; }
+  .editor-sub-pane { min-height: 160px; }
+  textarea.code-editor { min-height: 130px; }
+  #terminal-output { min-height: 200px; }
+}
 
-  /* Vertical drag handle between left/right */
-  .h-resizer {
-    width: 5px;
-    cursor: col-resize;
-    background: transparent;
-    flex-shrink: 0;
-    z-index: 10;
-    transition: background 0.15s;
-    position: relative;
-  }
-  .h-resizer:hover, .h-resizer.dragging { background: rgba(0,245,255,0.25); }
-  .h-resizer::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    width: 2px;
-    height: 30px;
-    border-radius: 2px;
-    background: rgba(0,245,255,0.15);
-  }
+/* ═══════════════════════════════════════════════════════
+   SECTION TITLES
+═══════════════════════════════════════════════════════ */
+.section-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0; margin-bottom: 7px;
+}
+.section-title .label-accent { color: var(--neon-cyan); }
 
-  /* Bottom table section */
-  .bottom-section {
-    height: 260px;
-    flex-shrink: 0;
-    background: var(--bg-panel);
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-  }
+/* ── Buttons ── */
+.btn {
+  background: rgba(0,245,255,0.06);
+  border: 1px solid rgba(0,245,255,0.2);
+  color: var(--neon-cyan);
+  padding: 5px 12px; border-radius: 4px; cursor: pointer;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  transition: all 0.2s; display: flex; align-items: center;
+  gap: 5px; white-space: nowrap; position: relative; overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute; top: 0; left: -50%; width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,245,255,0.15), transparent);
+  transition: none;
+}
+.btn:hover::after { left: 130%; transition: left 0.4s ease; }
+.btn:hover {
+  background: rgba(0,245,255,0.13);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0,245,255,0.22), inset 0 0 8px rgba(0,245,255,0.04);
+}
+.btn:active { transform: scale(0.97); }
+.btn.green {
+  background: rgba(0,255,159,0.06);
+  border-color: rgba(0,255,159,0.25); color: var(--neon-green);
+}
+.btn.green::after {
+  background: linear-gradient(90deg, transparent, rgba(0,255,159,0.15), transparent);
+}
+.btn.green:hover {
+  background: rgba(0,255,159,0.13);
+  border-color: var(--neon-green);
+  box-shadow: 0 0 12px rgba(0,255,159,0.22), inset 0 0 8px rgba(0,255,159,0.04);
+}
+.btn.running { opacity: 0.65; cursor: not-allowed; pointer-events: none; }
 
-  /* Horizontal drag handle between top/bottom */
-  .v-resizer {
-    height: 5px;
-    cursor: row-resize;
-    background: transparent;
-    flex-shrink: 0;
-    z-index: 10;
-    transition: background 0.15s;
-    position: relative;
-  }
-  .v-resizer:hover, .v-resizer.dragging { background: rgba(0,245,255,0.25); }
-  .v-resizer::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%,-50%);
-    height: 2px;
-    width: 40px;
-    border-radius: 2px;
-    background: rgba(0,245,255,0.15);
-  }
+/* ═══════════════════════════════════════════════════════
+   EDITOR PANELS
+═══════════════════════════════════════════════════════ */
+.editor-wrapper {
+  display: flex; flex-direction: column; flex: 1;
+  min-height: 0; overflow: hidden;
+  border-radius: 8px;
+}
 
-  /* ── MOBILE OVERRIDES ─────────────────── */
-  @media (max-width: 768px) {
-    html, body { overflow: auto; height: auto; }
-    .app-container { height: auto; overflow: visible; }
-    .top-section { flex-direction: column; overflow: visible; height: auto; }
-    .left-pane {
-      width: 100% !important;
-      border-right: none;
-      border-bottom: 1px solid var(--border-glow);
-      flex-shrink: 1;
-      height: auto;
-      min-height: 320px;
-      overflow: visible;
-    }
-    .right-pane { height: auto; min-height: 260px; flex-shrink: 1; overflow: visible; }
-    .bottom-section { height: auto; min-height: 240px; flex-shrink: 0; }
-    .h-resizer { display: none; }
-    .v-resizer { display: none; }
-    .editor-wrapper { min-height: 180px; }
-    textarea.code-editor { min-height: 140px; }
-    #terminal-output { min-height: 180px; }
-  }
+textarea.code-editor {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 7px;
+  color: var(--neon-green);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 11px 13px;
+  resize: none; /* no manual resize — controlled by drag handle */
+  outline: none;
+  font-size: 12.5px; line-height: 1.75;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  min-height: 0;
+  overflow: auto;
+}
+textarea.code-editor:focus {
+  border-color: rgba(0,245,255,0.38);
+  box-shadow:
+    0 0 0 2px rgba(0,245,255,0.07),
+    0 0 18px rgba(0,245,255,0.05);
+}
+#models-editor { color: var(--text-bright); }
 
-  /* ── SECTION TITLES ───────────────────── */
-  .section-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-  }
-  .section-title .label-accent { color: var(--neon-cyan); }
+/* ── Terminal ── */
+#terminal-output {
+  flex: 1;
+  background: linear-gradient(170deg, #020c04 0%, #040e08 100%);
+  border: 1px solid rgba(0,255,159,0.1);
+  border-radius: 7px;
+  color: var(--neon-green);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 12px 14px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-size: 12px; line-height: 1.75;
+  word-break: break-all; min-height: 0;
+  resize: none;
+}
+#terminal-output .t-info  { color: var(--text-mid); }
+#terminal-output .t-error { color: #ff5060; }
+#terminal-output .t-warn  { color: #ffad00; }
+#terminal-output .t-ok    { color: var(--neon-green); }
+#terminal-output .t-dim   { color: var(--text-dim); }
 
-  /* ── BUTTONS ──────────────────────────── */
-  .btn {
-    background: rgba(0,245,255,0.07);
-    border: 1px solid var(--border-glow);
-    color: var(--neon-cyan);
-    padding: 5px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-  }
-  .btn:hover {
-    background: rgba(0,245,255,0.15);
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 10px rgba(0,245,255,0.2);
-  }
-  .btn:active { transform: scale(0.97); }
-  .btn.green {
-    background: rgba(0,255,159,0.07);
-    border-color: rgba(0,255,159,0.3);
-    color: var(--neon-green);
-  }
-  .btn.green:hover {
-    background: rgba(0,255,159,0.15);
-    border-color: var(--neon-green);
-    box-shadow: 0 0 10px rgba(0,255,159,0.2);
-  }
-  .btn.running {
-    opacity: 0.7;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
+#terminal-output::after {
+  content: '▋';
+  display: inline-block;
+  color: var(--neon-green);
+  animation: blink-cur 1s step-end infinite;
+}
+@keyframes blink-cur { 0%,100%{opacity:1} 50%{opacity:0} }
 
-  /* ── EDITORS ──────────────────────────── */
-  .editor-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 8px;
-    min-height: 0;
-    overflow: hidden;
-  }
-  textarea.code-editor {
-    flex: 1;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-dim);
-    border-radius: 6px;
-    color: var(--neon-green);
-    font-family: 'JetBrains Mono', monospace;
-    padding: 11px 13px;
-    resize: vertical;   /* user can resize vertically */
-    outline: none;
-    font-size: 12.5px;
-    line-height: 1.7;
-    transition: border-color 0.2s;
-    min-height: 80px;
-  }
-  textarea.code-editor:focus {
-    border-color: rgba(0,245,255,0.35);
-    box-shadow: 0 0 0 2px rgba(0,245,255,0.06);
-  }
-  #models-editor { color: var(--text-bright); }
+/* ═══════════════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════════════ */
+.tab-controls {
+  display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap;
+}
+.tab-btn {
+  background: transparent; border: 1px solid var(--border-dim);
+  color: var(--text-dim);
+  font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+  padding: 4px 11px; border-radius: 4px; transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--text-mid); border-color: var(--border-glow); }
+.tab-btn.active {
+  color: var(--neon-cyan);
+  border-color: rgba(0,245,255,0.4);
+  background: rgba(0,245,255,0.07);
+  box-shadow: 0 0 8px rgba(0,245,255,0.12);
+}
 
-  /* ── TERMINAL ─────────────────────────── */
-  #terminal-output {
-    flex: 1;
-    background: #020c04;
-    border: 1px solid rgba(0,255,159,0.12);
-    border-radius: 6px;
-    color: var(--neon-green);
-    font-family: 'JetBrains Mono', monospace;
-    padding: 12px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    font-size: 12px;
-    line-height: 1.7;
-    word-break: break-all;
-    min-height: 0;
-  }
-  #terminal-output::-webkit-scrollbar { width: 4px; }
-  #terminal-output::-webkit-scrollbar-thumb { background: rgba(0,255,159,0.2); border-radius: 2px; }
-  #terminal-output .t-info  { color: var(--text-mid); }
-  #terminal-output .t-error { color: #ff5060; }
-  #terminal-output .t-warn  { color: #ffad00; }
-  #terminal-output .t-ok    { color: var(--neon-green); }
-  #terminal-output .t-dim   { color: var(--text-dim); }
-
-  /* ── TABS ─────────────────────────────── */
-  .tab-controls {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-  }
-  .tab-btn {
-    background: transparent;
-    border: 1px solid var(--border-dim);
-    color: var(--text-dim);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: 4px 11px;
-    border-radius: 4px;
-    transition: all 0.15s;
-  }
-  .tab-btn:hover { color: var(--text-mid); border-color: var(--border-glow); }
-  .tab-btn.active {
-    color: var(--neon-cyan);
-    border-color: rgba(0,245,255,0.4);
-    background: rgba(0,245,255,0.08);
-    box-shadow: 0 0 8px rgba(0,245,255,0.1);
-  }
-
-  /* ── DATA TABLE ───────────────────────── */
-  .table-container {
-    display: none;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-dim);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .table-container.active { display: flex; }
-  .table-header {
-    background: var(--bg-elevated);
-    padding: 7px 13px;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-mid);
-    border-bottom: 1px solid var(--border-dim);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .table-header .row-count {
-    font-size: 10px;
-    color: var(--text-dim);
-    border: 1px solid var(--border-dim);
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-weight: 500;
-    margin-left: auto;
-  }
-  .data-table-wrap { overflow: auto; flex: 1; }
-  .data-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
-  .data-table-wrap::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 2px; }
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .data-table th {
-    padding: 6px 13px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-dim);
-    color: var(--neon-cyan);
-    font-weight: 500;
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    background: var(--bg-elevated);
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
-  }
-  .data-table td {
-    padding: 6px 13px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-dim);
-    color: var(--text-mid);
-    white-space: nowrap;
-  }
-  .data-table tbody tr:hover td { background: rgba(0,245,255,0.03); color: var(--text-bright); }
-  .td-null { color: var(--text-dim) !important; font-style: italic; }
-  .td-num  { color: #ffad00 !important; }
-  .td-bool-t { color: var(--neon-green) !important; }
-  .td-bool-f { color: #ff5060 !important; }
-
-  .empty-state {
-    padding: 20px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 12px;
-    font-family: 'Rajdhani', sans-serif;
-    letter-spacing: 1px;
-  }
+/* ═══════════════════════════════════════════════════════
+   DATA TABLE
+═══════════════════════════════════════════════════════ */
+.table-container {
+  display: none; flex-direction: column; flex: 1;
+  min-height: 0; border-radius: 7px; overflow: hidden;
+  border: 1px solid var(--border-dim);
+  background: var(--bg-surface);
+}
+.table-container.active { display: flex; }
+.table-header {
+  background: var(--bg-elevated);
+  padding: 7px 13px;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-mid); border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+}
+.table-header .row-count {
+  font-size: 10px; color: var(--text-dim);
+  border: 1px solid var(--border-dim);
+  padding: 1px 6px; border-radius: 3px; font-weight: 500; margin-left: auto;
+}
+.data-table-wrap { overflow: auto; flex: 1; }
+.data-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+}
+.data-table th {
+  padding: 6px 13px; text-align: left;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--neon-cyan); font-weight: 500; font-size: 11px;
+  letter-spacing: 0.5px; background: var(--bg-elevated);
+  white-space: nowrap; position: sticky; top: 0;
+}
+.data-table td {
+  padding: 6px 13px; text-align: left;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--text-mid); white-space: nowrap;
+}
+.data-table tbody tr:hover td { background: rgba(0,245,255,0.03); color: var(--text-bright); }
+.td-null { color: var(--text-dim) !important; font-style: italic; }
+.td-num  { color: #ffad00 !important; }
+.td-bool-t { color: var(--neon-green) !important; }
+.td-bool-f { color: #ff5060 !important; }
+.empty-state {
+  padding: 20px; text-align: center; color: var(--text-dim);
+  font-size: 12px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px;
+}
 </style>
 </head>
 <body>
 
-<!-- FIX: This hidden form forces Django to set the CSRF cookie on page load -->
+<!-- Viewport-wide beam border element -->
+<div id="viewport-beam" aria-hidden="true"></div>
+
 <form style="display:none">{% csrf_token %}</form>
 
-<!-- ── NAVBAR ─────────────────────────────────────────── -->
+<!-- ════════════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════════ -->
 <nav class="orm-nav">
   <a href="/" class="orm-logo">
     <div class="orm-logo-icon">
@@ -643,19 +680,13 @@
 
   <div class="orm-nav-spacer"></div>
 
-  <!-- Exit / Reset hint in navbar -->
   <a href="{% url 'reset_session' %}" class="exit-hint" title="Exit Shell / Reset Session">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6.5 8h6.5M10 5l3 3-3 3"/>
       <path d="M9.5 3.5H4a1 1 0 00-1 1v7a1 1 0 001 1h5.5"/>
     </svg>
     <span>Exit / Reset</span>
   </a>
-
-  <div class="orm-status">
-    <div class="status-dot"></div>
-    <span class="status-text">{{ db_engine|default:"sqlite3" }}</span>
-  </div>
 
   <div class="orm-profile" id="profileBtn">
     <div class="profile-avatar">
@@ -712,32 +743,42 @@
   </div>
 </nav>
 
-<!-- ── MAIN APP ─────────────────────────────────────────── -->
+<!-- ════════════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════════ -->
 {% block content %}
 <div class="app-container">
 
-  <!-- Top: Editors + Terminal -->
   <div class="top-section" id="topSection">
 
-    <!-- Left: Models + Query editors -->
+    <!-- LEFT: Models + Query editors — split with inner drag handle -->
     <div class="left-pane" id="leftPane">
 
-      <div class="editor-wrapper">
+      <!-- Models editor sub-pane -->
+      <div class="editor-sub-pane" id="modelsPane">
         <div class="section-title">
           <span><span class="label-accent">&#x25A6;</span>&nbsp; Temporary Models</span>
           <button class="btn" id="saveModelsBtn">&#x2713; Save Models</button>
         </div>
-        <textarea id="models-editor" class="code-editor"
-          placeholder="class Publisher(models.Model):&#10;    name = models.CharField(max_length=100)">{{ temp_models_code }}</textarea>
+        <div class="editor-wrapper">
+          <textarea id="models-editor" class="code-editor panel-glow"
+            placeholder="class Publisher(models.Model):&#10;    name = models.CharField(max_length=100)">{{ temp_models_code }}</textarea>
+        </div>
       </div>
 
-      <div class="editor-wrapper">
+      <!-- Inner vertical drag handle between the two editors -->
+      <div class="inner-v-resizer" id="innerVResizer" title="Drag to resize editors"></div>
+
+      <!-- Query editor sub-pane -->
+      <div class="editor-sub-pane" id="queryPane">
         <div class="section-title">
           <span><span class="label-accent">&#x276F;</span>&nbsp; ORM Query</span>
           <button class="btn green" id="runBtn">&#x25B6; Run Query</button>
         </div>
-        <textarea id="query-editor" class="code-editor"
-          placeholder="# Write your Django ORM query here...&#10;Author.objects.all()"></textarea>
+        <div class="editor-wrapper">
+          <textarea id="query-editor" class="code-editor panel-glow"
+            placeholder="# Write your Django ORM query here...&#10;Author.objects.all()"></textarea>
+        </div>
       </div>
 
     </div>
@@ -745,21 +786,21 @@
     <!-- Horizontal drag handle -->
     <div class="h-resizer" id="hResizer" title="Drag to resize"></div>
 
-    <!-- Right: Terminal -->
+    <!-- RIGHT: Terminal -->
     <div class="right-pane">
       <div class="section-title" style="margin-bottom:8px">
         <span><span class="label-accent">$</span>&nbsp; Terminal Output</span>
-        <button class="btn" id="clearBtn" style="font-size:10px; padding:3px 9px;">Clear</button>
+        <button class="btn" id="clearBtn" style="font-size:10px;padding:3px 9px;">Clear</button>
       </div>
       <div id="terminal-output"><span class="t-dim">Waiting for input...</span></div>
     </div>
 
   </div>
 
-  <!-- Vertical drag handle -->
+  <!-- Vertical resize handle between top and bottom sections -->
   <div class="v-resizer" id="vResizer" title="Drag to resize"></div>
 
-  <!-- Bottom: Table browser -->
+  <!-- BOTTOM: Table browser -->
   <div class="bottom-section" id="bottomSection">
 
     <div class="tab-controls" id="tabControls">
@@ -767,7 +808,7 @@
         <button class="tab-btn {% if forloop.first %}active{% endif %}"
           data-target="table-{{ table.name }}">{{ table.name }}</button>
       {% empty %}
-        <span style="color:var(--text-dim); font-size:11px; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">No tables — save a model to begin</span>
+        <span style="color:var(--text-dim);font-size:11px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;">No tables — save a model to begin</span>
       {% endfor %}
     </div>
 
@@ -780,27 +821,17 @@
       <div class="data-table-wrap">
         <table class="data-table">
           <thead>
-            <tr>
-              {% for field in table.fields %}<th>{{ field }}</th>{% endfor %}
-            </tr>
+            <tr>{% for field in table.fields %}<th>{{ field }}</th>{% endfor %}</tr>
           </thead>
           <tbody>
             {% for record in table.records %}
             <tr>
               {% for field in table.fields %}
-              <td>
-                {% for key, value in record.items %}
-                  {% if key == field %}{{ value }}{% endif %}
-                {% endfor %}
-              </td>
+              <td>{% for key, value in record.items %}{% if key == field %}{{ value }}{% endif %}{% endfor %}</td>
               {% endfor %}
             </tr>
             {% empty %}
-            <tr>
-              <td colspan="{{ table.fields|length }}">
-                <div class="empty-state">No records found</div>
-              </td>
-            </tr>
+            <tr><td colspan="{{ table.fields|length }}"><div class="empty-state">No records found</div></td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -809,7 +840,6 @@
     {% endfor %}
 
   </div>
-
 </div>
 {% endblock %}
 
@@ -819,8 +849,8 @@
 
   /* ── CSRF ── */
   function getCsrf() {
-    const match = document.cookie.match(/csrftoken=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
   }
 
   /* ── Fetch helper ── */
@@ -835,82 +865,75 @@
       const text = await res.text();
       return { ok: false, status: res.status, data: {
         status: 'error',
-        output: `HTTP ${res.status} — server returned non-JSON response.\n\nTip: Check your view returns JsonResponse.\n\n` + text.substring(0, 400)
+        output: `HTTP ${res.status} — server returned non-JSON.\n\nTip: Check view returns JsonResponse.\n\n` + text.substring(0, 400)
       }};
     }
-    const data = await res.json();
-    return { ok: res.ok, status: res.status, data };
+    return { ok: res.ok, status: res.status, data: await res.json() };
   }
 
-  /* ── Terminal helpers ── */
+  /* ── Terminal ── */
   const term = document.getElementById('terminal-output');
   function termSet(html) { term.innerHTML = html; }
   function termLog(msg, cls) {
-    const span = document.createElement('span');
+    const span = Object.assign(document.createElement('span'), { textContent: msg });
     if (cls) span.className = cls;
-    span.textContent = msg;
     if (term.querySelector('.t-dim') && term.textContent.trim() === 'Waiting for input...') term.innerHTML = '';
     term.appendChild(span);
     term.appendChild(document.createTextNode('\n'));
     term.scrollTop = term.scrollHeight;
   }
-  function termClear() { term.innerHTML = '<span class="t-dim">Cleared.</span>'; }
-  document.getElementById('clearBtn').onclick = termClear;
+  document.getElementById('clearBtn').onclick = () => {
+    term.innerHTML = '<span class="t-dim">Cleared.</span>';
+  };
 
-  /* ── Tab switching ── */
+  /* ── Tabs ── */
   function attachTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.onclick = () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.table-container').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
-        const target = document.getElementById(btn.dataset.target);
-        if (target) target.classList.add('active');
-      });
+        const t = document.getElementById(btn.dataset.target);
+        if (t) t.classList.add('active');
+      };
     });
   }
   attachTabs();
 
-  /* ── Render tables from API ── */
-  function renderTables(tablesData) {
+  /* ── Render tables ── */
+  function renderTables(data) {
     const section = document.getElementById('bottomSection');
     section.innerHTML = '';
     const tabRow = document.createElement('div');
-    tabRow.className = 'tab-controls';
-    tabRow.id = 'tabControls';
-
-    if (!tablesData || tablesData.length === 0) {
+    tabRow.className = 'tab-controls'; tabRow.id = 'tabControls';
+    if (!data || !data.length) {
       tabRow.innerHTML = '<span style="color:var(--text-dim);font-size:11px;font-family:\'Rajdhani\',sans-serif;letter-spacing:1px;">No tables available</span>';
       section.appendChild(tabRow);
       return;
     }
-
-    tablesData.forEach((table, idx) => {
+    data.forEach((table, idx) => {
       const btn = document.createElement('button');
       btn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
       btn.dataset.target = 'table-' + table.name;
       btn.textContent = table.name;
       tabRow.appendChild(btn);
-
       const container = document.createElement('div');
       container.className = 'table-container' + (idx === 0 ? ' active' : '');
       container.id = 'table-' + table.name;
-      const rowCount = table.records ? table.records.length : 0;
-
-      let html = `<div class="table-header">${table.name}<span class="row-count">${rowCount} rows</span></div><div class="data-table-wrap"><table class="data-table"><thead><tr>`;
+      const rc = table.records ? table.records.length : 0;
+      let html = `<div class="table-header">${table.name}<span class="row-count">${rc} rows</span></div><div class="data-table-wrap"><table class="data-table"><thead><tr>`;
       (table.fields || []).forEach(f => { html += `<th>${f}</th>`; });
       html += '</tr></thead><tbody>';
-
-      if (rowCount > 0) {
+      if (rc > 0) {
         table.records.forEach(record => {
           html += '<tr>';
           (table.fields || []).forEach(f => {
-            const val = record[f];
-            let cls = '', display = val;
-            if (val === null || val === undefined || val === '') { display = 'null'; cls = 'td-null'; }
-            else if (val === true  || val === 'True')  { cls = 'td-bool-t'; }
-            else if (val === false || val === 'False') { cls = 'td-bool-f'; }
-            else if (!isNaN(val) && val !== '')        { cls = 'td-num'; }
+            const v = record[f];
+            let cls = '', display = v;
+            if (v === null || v === undefined || v === '') { display = 'null'; cls = 'td-null'; }
+            else if (v === true  || v === 'True')  cls = 'td-bool-t';
+            else if (v === false || v === 'False') cls = 'td-bool-f';
+            else if (!isNaN(v) && v !== '')        cls = 'td-num';
             html += `<td class="${cls}">${display}</td>`;
           });
           html += '</tr>';
@@ -922,7 +945,6 @@
       container.innerHTML = html;
       section.appendChild(container);
     });
-
     section.insertBefore(tabRow, section.firstChild);
     attachTabs();
   }
@@ -932,19 +954,15 @@
   saveModelsBtn.onclick = async () => {
     const code = document.getElementById('models-editor').value.trim();
     if (!code) { termLog('Nothing to save.', 't-warn'); return; }
-    saveModelsBtn.classList.add('running');
-    saveModelsBtn.textContent = '⟳ Saving…';
+    saveModelsBtn.classList.add('running'); saveModelsBtn.textContent = '⟳ Saving…';
     termSet('<span class="t-info">Validating and saving models...</span>');
     const { data } = await apiFetch('/api/save_models/', { models_code: code });
-    saveModelsBtn.classList.remove('running');
-    saveModelsBtn.textContent = '✓ Save Models';
+    saveModelsBtn.classList.remove('running'); saveModelsBtn.textContent = '✓ Save Models';
     if (data.status === 'success') {
-      termSet('');
-      termLog('[OK] ' + (data.message || 'Models saved successfully.'), 't-ok');
+      termSet(''); termLog('[OK] ' + (data.message || 'Models saved successfully.'), 't-ok');
       if (data.tables_data) renderTables(data.tables_data);
     } else {
-      termSet('');
-      termLog('[ERROR] ' + (data.output || data.message || 'Unknown error.'), 't-error');
+      termSet(''); termLog('[ERROR] ' + (data.output || data.message || 'Unknown error.'), 't-error');
     }
   };
 
@@ -953,23 +971,19 @@
   runBtn.onclick = async () => {
     const query = document.getElementById('query-editor').value.trim();
     if (!query) { termLog('No query to run.', 't-warn'); return; }
-    runBtn.classList.add('running');
-    runBtn.textContent = '⟳ Running…';
+    runBtn.classList.add('running'); runBtn.textContent = '⟳ Running…';
     termSet('<span class="t-info">Executing query...</span>');
     const { data } = await apiFetch('/api/execute/', { query });
-    runBtn.classList.remove('running');
-    runBtn.textContent = '▶ Run Query';
+    runBtn.classList.remove('running'); runBtn.textContent = '▶ Run Query';
     if (data.status === 'success') {
-      termSet('');
-      termLog(data.output || 'Query executed — no output returned.', 't-ok');
+      termSet(''); termLog(data.output || 'Query executed — no output.', 't-ok');
       if (data.tables_data) renderTables(data.tables_data);
     } else {
-      termSet('');
-      termLog(data.output || data.message || 'Unknown error.', 't-error');
+      termSet(''); termLog(data.output || data.message || 'Unknown error.', 't-error');
     }
   };
 
-  /* ── Tab indent in editors ── */
+  /* ── Tab indent ── */
   document.querySelectorAll('.code-editor').forEach(ed => {
     ed.addEventListener('keydown', e => {
       if (e.key === 'Tab') {
@@ -987,103 +1001,138 @@
   document.addEventListener('click', e => { if (!profileBtn.contains(e.target)) profileBtn.classList.remove('is-open'); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') profileBtn.classList.remove('is-open'); });
 
-  /* ── RESIZABLE PANELS (desktop only) ── */
+  /* ════════════════════════════════════════
+     RESIZABLE PANELS — mouse + touch
+  ════════════════════════════════════════ */
   const isMobile = () => window.innerWidth <= 768;
 
-  /* Left/Right horizontal resize */
-  const hResizer  = document.getElementById('hResizer');
-  const leftPane  = document.getElementById('leftPane');
+  /* ── Left / Right (horizontal) ── */
+  const hResizer   = document.getElementById('hResizer');
+  const leftPane   = document.getElementById('leftPane');
   const topSection = document.getElementById('topSection');
-
-  let hDragging = false, hStartX = 0, hStartW = 0;
+  let hDrag = false, hX0 = 0, hW0 = 0;
 
   hResizer.addEventListener('mousedown', e => {
     if (isMobile()) return;
-    hDragging = true;
-    hStartX = e.clientX;
-    hStartW = leftPane.offsetWidth;
+    hDrag = true; hX0 = e.clientX; hW0 = leftPane.offsetWidth;
     hResizer.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   });
   document.addEventListener('mousemove', e => {
-    if (!hDragging) return;
+    if (!hDrag) return;
     const total = topSection.offsetWidth;
-    const newW = Math.min(Math.max(hStartW + (e.clientX - hStartX), 180), total - 180);
-    leftPane.style.width = newW + 'px';
+    leftPane.style.width = Math.min(Math.max(hW0 + e.clientX - hX0, 200), total - 200) + 'px';
   });
   document.addEventListener('mouseup', () => {
-    if (!hDragging) return;
-    hDragging = false;
-    hResizer.classList.remove('dragging');
+    if (!hDrag) return;
+    hDrag = false; hResizer.classList.remove('dragging');
+    document.body.style.cursor = ''; document.body.style.userSelect = '';
+  });
+
+  /* ── Inner vertical resizer between Models and Query editors ── */
+  const innerVResizer = document.getElementById('innerVResizer');
+  const modelsPane    = document.getElementById('modelsPane');
+  const queryPane     = document.getElementById('queryPane');
+  let ivDrag = false, ivY0 = 0, ivMH0 = 0, ivQH0 = 0;
+
+  innerVResizer.addEventListener('mousedown', e => {
+    if (isMobile()) return;
+    ivDrag = true;
+    ivY0   = e.clientY;
+    ivMH0  = modelsPane.offsetHeight;
+    ivQH0  = queryPane.offsetHeight;
+    innerVResizer.classList.add('dragging');
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!ivDrag) return;
+    const delta     = e.clientY - ivY0;
+    const totalH    = ivMH0 + ivQH0;
+    const minH      = 80;
+    const newModels = Math.min(Math.max(ivMH0 + delta, minH), totalH - minH);
+    const newQuery  = totalH - newModels;
+    modelsPane.style.flex = 'none';
+    queryPane.style.flex  = 'none';
+    modelsPane.style.height = newModels + 'px';
+    queryPane.style.height  = newQuery  + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!ivDrag) return;
+    ivDrag = false;
+    innerVResizer.classList.remove('dragging');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   });
 
-  /* Touch support for horizontal resize */
-  hResizer.addEventListener('touchstart', e => {
+  /* Touch support for inner resizer */
+  innerVResizer.addEventListener('touchstart', e => {
     if (isMobile()) return;
-    hDragging = true;
-    hStartX = e.touches[0].clientX;
-    hStartW = leftPane.offsetWidth;
-    hResizer.classList.add('dragging');
+    ivDrag = true;
+    ivY0   = e.touches[0].clientY;
+    ivMH0  = modelsPane.offsetHeight;
+    ivQH0  = queryPane.offsetHeight;
+    innerVResizer.classList.add('dragging');
   }, { passive: true });
+
   document.addEventListener('touchmove', e => {
-    if (!hDragging) return;
-    const total = topSection.offsetWidth;
-    const newW = Math.min(Math.max(hStartW + (e.touches[0].clientX - hStartX), 180), total - 180);
-    leftPane.style.width = newW + 'px';
+    if (!ivDrag) return;
+    const delta  = e.touches[0].clientY - ivY0;
+    const totalH = ivMH0 + ivQH0;
+    const minH   = 80;
+    const newModels = Math.min(Math.max(ivMH0 + delta, minH), totalH - minH);
+    modelsPane.style.flex   = 'none';
+    queryPane.style.flex    = 'none';
+    modelsPane.style.height = newModels + 'px';
+    queryPane.style.height  = (totalH - newModels) + 'px';
   }, { passive: true });
-  document.addEventListener('touchend', () => { if (hDragging) { hDragging = false; hResizer.classList.remove('dragging'); }});
 
-  /* Top/Bottom vertical resize */
-  const vResizer     = document.getElementById('vResizer');
-  const appContainer = document.querySelector('.app-container');
+  document.addEventListener('touchend', () => {
+    if (ivDrag) { ivDrag = false; innerVResizer.classList.remove('dragging'); }
+  });
+
+  /* ── Top / Bottom (vertical) ── */
+  const vResizer      = document.getElementById('vResizer');
   const bottomSection = document.getElementById('bottomSection');
-
-  let vDragging = false, vStartY = 0, vStartH = 0;
+  const appContainer  = document.querySelector('.app-container');
+  let vDrag = false, vY0 = 0, vH0 = 0;
 
   vResizer.addEventListener('mousedown', e => {
     if (isMobile()) return;
-    vDragging = true;
-    vStartY = e.clientY;
-    vStartH = bottomSection.offsetHeight;
+    vDrag = true; vY0 = e.clientY; vH0 = bottomSection.offsetHeight;
     vResizer.classList.add('dragging');
     document.body.style.cursor = 'row-resize';
     document.body.style.userSelect = 'none';
   });
   document.addEventListener('mousemove', e => {
-    if (!vDragging) return;
+    if (!vDrag) return;
     const total = appContainer.offsetHeight;
-    const newH = Math.min(Math.max(vStartH - (e.clientY - vStartY), 120), total - 200);
-    bottomSection.style.height = newH + 'px';
+    bottomSection.style.height = Math.min(Math.max(vH0 - (e.clientY - vY0), 120), total - 200) + 'px';
   });
   document.addEventListener('mouseup', () => {
-    if (!vDragging) return;
-    vDragging = false;
-    vResizer.classList.remove('dragging');
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
+    if (!vDrag) return;
+    vDrag = false; vResizer.classList.remove('dragging');
+    document.body.style.cursor = ''; document.body.style.userSelect = '';
   });
-
-  /* Touch support for vertical resize */
   vResizer.addEventListener('touchstart', e => {
     if (isMobile()) return;
-    vDragging = true;
-    vStartY = e.touches[0].clientY;
-    vStartH = bottomSection.offsetHeight;
+    vDrag = true; vY0 = e.touches[0].clientY; vH0 = bottomSection.offsetHeight;
     vResizer.classList.add('dragging');
   }, { passive: true });
   document.addEventListener('touchmove', e => {
-    if (!vDragging) return;
+    if (!vDrag) return;
     const total = appContainer.offsetHeight;
-    const newH = Math.min(Math.max(vStartH - (e.touches[0].clientY - vStartY), 120), total - 200);
-    bottomSection.style.height = newH + 'px';
+    bottomSection.style.height = Math.min(Math.max(vH0 - (e.touches[0].clientY - vY0), 120), total - 200) + 'px';
   }, { passive: true });
-  document.addEventListener('touchend', () => { if (vDragging) { vDragging = false; vResizer.classList.remove('dragging'); }});
+  document.addEventListener('touchend', () => {
+    if (vDrag) { vDrag = false; vResizer.classList.remove('dragging'); }
+  });
 
 })();
 </script>
-
 </body>
 </html>
