@@ -8,6 +8,7 @@ from django.apps import apps
 from django.db import models
 from django.core.serializers import serialize
 from .models import Author, Book, Library
+from .sandbox import validate_code
 
 def get_tables_data(env=None):
     tables_data = []
@@ -118,6 +119,11 @@ def save_models(request):
             '__name__': 'compiler.models'
         }
         try:
+            # Pre-validate AST syntax for malicious code
+            is_valid, msg = validate_code(models_code)
+            if not is_valid:
+                return JsonResponse({'status': 'error', 'output': msg})
+                
             # Validate the code by executing it
             exec(models_code, env)
             request.session['temp_models_code'] = models_code
@@ -150,6 +156,11 @@ def execute_query(request):
                 'models': models,
                 '__name__': 'compiler.models'
             }
+            
+            # Pre-validate AST syntax for malicious query code
+            is_valid, msg = validate_code(query_code)
+            if not is_valid:
+                return JsonResponse({'status': 'error', 'output': msg})
             
             # Include temp models code if any
             temp_models_code = request.session.get('temp_models_code', '')
