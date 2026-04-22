@@ -33,17 +33,13 @@
     min-height: 100vh;
   }
 
-  /* Scanline overlay */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.025) 2px,
-      rgba(0,0,0,0.025) 4px
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px
     );
     pointer-events: none;
     z-index: 9999;
@@ -57,14 +53,11 @@
     display: flex;
     align-items: center;
     padding: 0 20px;
-    gap: 0;
     position: sticky;
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(0,245,255,0.06);
   }
-
-  /* Logo */
   .orm-logo {
     display: flex;
     align-items: center;
@@ -73,16 +66,8 @@
     flex-shrink: 0;
     user-select: none;
   }
-  .orm-logo-icon {
-    width: 34px;
-    height: 34px;
-    flex-shrink: 0;
-  }
-  .orm-logo-icon svg {
-    width: 34px;
-    height: 34px;
-    filter: drop-shadow(0 0 6px rgba(0,245,255,0.7));
-  }
+  .orm-logo-icon { width: 34px; height: 34px; flex-shrink: 0; }
+  .orm-logo-icon svg { width: 34px; height: 34px; filter: drop-shadow(0 0 6px rgba(0,245,255,0.7)); }
   .orm-logo-label { display: flex; flex-direction: column; gap: 0; }
   .orm-logo-text {
     font-family: 'Rajdhani', sans-serif;
@@ -105,11 +90,7 @@
     font-weight: 500;
     line-height: 1;
   }
-
-  /* Spacer */
   .orm-nav-spacer { flex: 1; }
-
-  /* DB Status */
   .orm-status {
     display: flex;
     align-items: center;
@@ -121,9 +102,7 @@
     background: rgba(0,255,159,0.03);
   }
   .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
     background: var(--neon-green);
     box-shadow: 0 0 7px var(--neon-green);
     animation: pulse-dot 2s ease-in-out infinite;
@@ -138,8 +117,6 @@
     text-transform: uppercase;
     font-weight: 600;
   }
-
-  /* Profile button */
   .orm-profile {
     display: flex;
     align-items: center;
@@ -165,47 +142,27 @@
     box-shadow: var(--glow-cyan);
   }
   .profile-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+    width: 28px; height: 28px; border-radius: 50%;
     background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 11px; font-weight: 700;
     color: var(--bg-void);
     flex-shrink: 0;
     box-shadow: 0 0 8px rgba(0,255,159,0.35);
     overflow: hidden;
   }
-  .profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
+  .profile-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
   .profile-name {
     font-family: 'Rajdhani', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 600; font-size: 13px;
     color: var(--text-bright);
     letter-spacing: 0.5px;
     max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .profile-chevron {
-    width: 10px;
-    height: 6px;
-    flex-shrink: 0;
-    transition: transform 0.2s;
-  }
+  .profile-chevron { width: 10px; height: 6px; flex-shrink: 0; transition: transform 0.2s; }
   .orm-profile.is-open .profile-chevron { transform: rotate(180deg); }
-
-  /* Dropdown */
   .profile-dropdown {
     display: none;
     position: absolute;
@@ -221,104 +178,319 @@
     animation: drop-in 0.18s ease-out;
   }
   @keyframes drop-in {
-    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
+    from { opacity:0; transform:translateY(-8px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
   }
   .orm-profile.is-open .profile-dropdown { display: block; }
-
-  /* Dropdown header */
   .drop-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
     padding: 12px 14px;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border-dim);
   }
   .drop-head-av {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+    width: 32px; height: 32px; border-radius: 50%;
     background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--bg-void);
-    flex-shrink: 0;
-    overflow: hidden;
+    font-size: 12px; font-weight: 700;
+    color: var(--bg-void); flex-shrink: 0; overflow: hidden;
   }
   .drop-head-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
   .drop-head-info { min-width: 0; }
   .drop-head-name {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 13px; font-weight: 700;
     color: var(--text-bright);
     letter-spacing: 0.5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .drop-head-role {
-    font-size: 10px;
-    color: var(--text-dim);
+    font-size: 10px; color: var(--text-dim);
     font-family: 'Rajdhani', sans-serif;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 1px; text-transform: uppercase;
   }
-
   .drop-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
     padding: 10px 14px;
-    font-size: 12px;
-    color: var(--text-mid);
+    font-size: 12px; color: var(--text-mid);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     font-family: 'Rajdhani', sans-serif;
-    font-weight: 500;
-    letter-spacing: 0.5px;
+    font-weight: 500; letter-spacing: 0.5px;
     text-decoration: none;
   }
   .drop-item:hover { background: rgba(0,245,255,0.07); color: var(--neon-cyan); }
-  .drop-item svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.75; }
-  .drop-divider { height: 1px; background: var(--border-dim); margin: 3px 0; }
+  .drop-item svg { width:13px; height:13px; flex-shrink:0; opacity:0.75; }
+  .drop-divider { height:1px; background:var(--border-dim); margin:3px 0; }
   .drop-item.danger { color: #cc4455; }
   .drop-item.danger svg { opacity: 1; }
   .drop-item.danger:hover { background: rgba(255,50,80,0.07); color: #ff5060; }
 
-  /* ── PAGE DEMO CONTENT (remove in prod) ─ */
-  .demo-body {
-    padding: 40px 24px;
+  /* ── APP LAYOUT ───────────────────────── */
+  .app-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    height: calc(100vh - 54px);
+  }
+  .top-section {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    border-bottom: 1px solid var(--border-glow);
+  }
+  .left-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-glow);
+    padding: 16px;
+    gap: 16px;
+    min-width: 0;
+  }
+  .right-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    min-width: 0;
+  }
+  .bottom-section {
+    height: 280px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
   }
-  .demo-hint {
+
+  /* ── SECTION TITLES ───────────────────── */
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
     font-size: 11px;
-    color: var(--text-dim);
+    font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    font-family: 'Rajdhani', sans-serif;
-    border: 1px dashed var(--border-dim);
-    padding: 8px 18px;
-    border-radius: 4px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
   }
-  .demo-hint span { color: rgba(0,245,255,0.35); }
+  .section-title .label-accent { color: var(--neon-cyan); }
+
+  /* ── BUTTONS ──────────────────────────── */
+  .btn {
+    background: rgba(0,245,255,0.07);
+    border: 1px solid var(--border-glow);
+    color: var(--neon-cyan);
+    padding: 5px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover {
+    background: rgba(0,245,255,0.15);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0,245,255,0.2);
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn.green {
+    background: rgba(0,255,159,0.07);
+    border-color: rgba(0,255,159,0.3);
+    color: var(--neon-green);
+  }
+  .btn.green:hover {
+    background: rgba(0,255,159,0.15);
+    border-color: var(--neon-green);
+    box-shadow: 0 0 10px rgba(0,255,159,0.2);
+  }
+  .btn.running {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ── EDITORS ──────────────────────────── */
+  .editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 8px;
+    min-height: 0;
+  }
+  textarea.code-editor {
+    flex: 1;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-dim);
+    border-radius: 6px;
+    color: var(--neon-green);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 12px 14px;
+    resize: none;
+    outline: none;
+    font-size: 13px;
+    line-height: 1.7;
+    transition: border-color 0.2s;
+    min-height: 0;
+  }
+  textarea.code-editor:focus {
+    border-color: rgba(0,245,255,0.35);
+    box-shadow: 0 0 0 2px rgba(0,245,255,0.06);
+  }
+  #models-editor { color: var(--text-bright); }
+
+  /* ── TERMINAL ─────────────────────────── */
+  #terminal-output {
+    flex: 1;
+    background: #020c04;
+    border: 1px solid rgba(0,255,159,0.12);
+    border-radius: 6px;
+    color: var(--neon-green);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 14px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 12px;
+    line-height: 1.7;
+    word-break: break-all;
+    min-height: 0;
+  }
+  #terminal-output::-webkit-scrollbar { width: 4px; }
+  #terminal-output::-webkit-scrollbar-thumb { background: rgba(0,255,159,0.2); border-radius: 2px; }
+  #terminal-output .t-info  { color: var(--text-mid); }
+  #terminal-output .t-error { color: #ff5060; }
+  #terminal-output .t-warn  { color: #ffad00; }
+  #terminal-output .t-ok    { color: var(--neon-green); }
+  #terminal-output .t-dim   { color: var(--text-dim); }
+
+  /* ── TABS ─────────────────────────────── */
+  .tab-controls {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 1px solid var(--border-dim);
+    color: var(--text-dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text-mid); border-color: var(--border-glow); }
+  .tab-btn.active {
+    color: var(--neon-cyan);
+    border-color: rgba(0,245,255,0.4);
+    background: rgba(0,245,255,0.08);
+    box-shadow: 0 0 8px rgba(0,245,255,0.1);
+  }
+
+  /* ── DATA TABLE ───────────────────────── */
+  .table-container {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-dim);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .table-container.active { display: flex; }
+  .table-header {
+    background: var(--bg-elevated);
+    padding: 8px 14px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    border-bottom: 1px solid var(--border-dim);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-header .row-count {
+    font-size: 10px;
+    color: var(--text-dim);
+    border: 1px solid var(--border-dim);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+    margin-left: auto;
+  }
+  .data-table-wrap { overflow: auto; flex: 1; }
+  .data-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
+  .data-table-wrap::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 2px; }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .data-table th {
+    padding: 7px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-dim);
+    color: var(--neon-cyan);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    background: var(--bg-elevated);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  .data-table td {
+    padding: 7px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-dim);
+    color: var(--text-mid);
+    white-space: nowrap;
+  }
+  .data-table tbody tr:hover td { background: rgba(0,245,255,0.03); color: var(--text-bright); }
+  .td-null { color: var(--text-dim) !important; font-style: italic; }
+  .td-num  { color: #ffad00 !important; }
+  .td-bool-t { color: var(--neon-green) !important; }
+  .td-bool-f { color: #ff5060 !important; }
+
+  .empty-state {
+    padding: 24px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+  }
 </style>
 </head>
 <body>
 
+<!-- FIX: This hidden form forces Django to set the CSRF cookie on page load -->
+<form style="display:none">{% csrf_token %}</form>
+
 <!-- ── NAVBAR ─────────────────────────────────────────── -->
 <nav class="orm-nav">
-
-  <!-- Logo -->
-  <a href="{% url 'dashboard' %}" class="orm-logo">
+  <a href="/" class="orm-logo">
     <div class="orm-logo-icon">
       <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="2" y="2" width="30" height="30" rx="7" stroke="#00f5ff" stroke-width="1.5" fill="none"/>
@@ -335,35 +507,24 @@
 
   <div class="orm-nav-spacer"></div>
 
-  <!-- DB status -->
   <div class="orm-status">
     <div class="status-dot"></div>
     <span class="status-text">{{ db_engine|default:"sqlite3" }}</span>
   </div>
 
-  <!-- Profile button -->
   <div class="orm-profile" id="profileBtn">
-
-    <!-- Avatar: shows photo if available, else initials -->
-    <div class="profile-avatar" id="profileAvatar">
+    <div class="profile-avatar">
       {% if request.user.profile.avatar %}
         <img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.username }}">
       {% else %}
         {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
       {% endif %}
     </div>
-
     <span class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-
-    <!-- Chevron icon -->
-    <svg class="profile-chevron" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="profile-chevron" viewBox="0 0 10 6" fill="none">
       <path d="M1 1l4 4 4-4" stroke="#2a5060" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-
-    <!-- Dropdown -->
-    <div class="profile-dropdown" id="profileDropdown">
-
-      <!-- Drop header -->
+    <div class="profile-dropdown">
       <div class="drop-head">
         <div class="drop-head-av">
           {% if request.user.profile.avatar %}
@@ -379,291 +540,97 @@
           </div>
         </div>
       </div>
-
       <a href="#" class="drop-item">
-        <svg viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/>
-          <path d="M2 14.5c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 14.5c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
         My Profile
       </a>
-
       <a href="#" class="drop-item">
-        <svg viewBox="0 0 16 16" fill="none">
-          <rect x="3" y="7.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
-          <path d="M5.5 7.5V5.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          <circle cx="8" cy="11" r="1" fill="currentColor"/>
-        </svg>
+        <svg viewBox="0 0 16 16" fill="none"><rect x="3" y="7.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 7.5V5.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11" r="1" fill="currentColor"/></svg>
         Change Password
       </a>
-
       <a href="#" class="drop-item">
-        <svg viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/>
-          <path d="M8 2v1.2M8 12.8V14M2 8h1.2M12.8 8H14M3.76 3.76l.85.85M11.39 11.39l.85.85M11.39 3.76l-.85.85M4.61 11.39l-.85.85" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 2v1.2M8 12.8V14M2 8h1.2M12.8 8H14M3.76 3.76l.85.85M11.39 11.39l.85.85M11.39 3.76l-.85.85M4.61 11.39l-.85.85" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
         Preferences
       </a>
-
       {% if request.user.is_staff %}
-      <a href="#" class="drop-item">
-        <svg viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
-          <path d="M5 7h6M5 10h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          <path d="M2 6h12" stroke="currentColor" stroke-width="1.3"/>
-        </svg>
+      <a href="{% url 'admin:index' %}" class="drop-item">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 7h6M5 10h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 6h12" stroke="currentColor" stroke-width="1.3"/></svg>
         Django Admin
       </a>
       {% endif %}
-
       <div class="drop-divider"></div>
-
       <a href="{% url 'reset_session' %}" class="drop-item danger">
-        <svg viewBox="0 0 16 16" fill="none">
-          <path d="M6.5 8h6.5M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M9.5 3.5H4a1 1 0 00-1 1v7a1 1 0 001 1h5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 8h6.5M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 3.5H4a1 1 0 00-1 1v7a1 1 0 001 1h5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
         Exit Shell / Reset
       </a>
-
     </div>
   </div>
-
 </nav>
 
-<!-- ── COMPILER CONTENT ────────────────────────────── -->
+<!-- ── MAIN APP ─────────────────────────────────────────── -->
 {% block content %}
-<style>
-  .app-container {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 54px);
-  }
-  .top-section {
-    display: flex;
-    flex: 1;
-    min-height: 400px;
-    border-bottom: 1px solid var(--border-glow);
-  }
-  .left-pane {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--border-glow);
-    padding: 20px;
-    gap: 20px;
-  }
-  .right-pane {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-  }
-  .bottom-section {
-    height: 300px;
-    background: var(--bg-panel);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .tab-controls {
-    display: flex;
-    gap: 10px;
-    border-bottom: 1px solid var(--border-glow);
-    padding-bottom: 10px;
-  }
-  
-  .tab-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-mid);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-  .tab-btn:hover {
-    color: var(--neon-cyan);
-    background: rgba(0,245,255,0.05);
-  }
-  .tab-btn.active {
-    color: var(--neon-cyan);
-    background: rgba(0,245,255,0.1);
-    box-shadow: 0 0 10px rgba(0,245,255,0.2);
-  }
-  
-  .section-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 16px;
-    color: var(--text-mid);
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .btn {
-    background: rgba(0, 245, 255, 0.1);
-    border: 1px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    transition: all 0.2s;
-  }
-  .btn:hover {
-    background: rgba(0, 245, 255, 0.2);
-    box-shadow: var(--glow-cyan);
-  }
-
-  .editor-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-  
-  textarea.code-editor {
-    flex: 1;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-glow);
-    border-radius: 6px;
-    color: var(--neon-green);
-    font-family: 'JetBrains Mono', monospace;
-    padding: 15px;
-    resize: none;
-    outline: none;
-    font-size: 13px;
-  }
-  
-  #models-editor {
-    color: var(--text-bright);
-    border-color: var(--border-dim);
-  }
-  
-  #terminal-output {
-    flex: 1;
-    background: #000;
-    border: 1px solid var(--border-dim);
-    border-radius: 6px;
-    color: #0f0;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 15px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    font-size: 13px;
-  }
-  .error-text {
-    color: #ff3333 !important;
-  }
-
-  /* Table styling */
-  .table-container {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-dim);
-    border-radius: 6px;
-    min-width: 300px;
-    display: none;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-  }
-  .table-container.active {
-    display: flex;
-  }
-  .table-header {
-    background: var(--bg-elevated);
-    padding: 10px 15px;
-    font-weight: 600;
-    color: var(--text-bright);
-    border-bottom: 1px solid var(--border-dim);
-    font-family: 'Rajdhani', sans-serif;
-    letter-spacing: 1px;
-  }
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-  .data-table th, .data-table td {
-    padding: 8px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-dim);
-    white-space: nowrap;
-  }
-  .data-table th {
-    color: var(--text-mid);
-    font-weight: normal;
-  }
-  .data-table td {
-    color: #ccc;
-  }
-  .data-table-wrap {
-    overflow: auto;
-    max-height: 220px;
-  }
-</style>
-
 <div class="app-container">
-  
-  <!-- Top Section: Editors & Terminal -->
+
+  <!-- Top: Editors + Terminal -->
   <div class="top-section">
-    <!-- Left Pane: Models & Query -->
+
+    <!-- Left: Models + Query editors -->
     <div class="left-pane">
-      
-      <!-- Models Editor -->
+
       <div class="editor-wrapper">
         <div class="section-title">
-          <span>Temporary Models Editor</span>
-          <button class="btn" id="save-models-btn">Save Session Models</button>
+          <span><span class="label-accent">&#x25A6;</span>&nbsp; Temporary Models</span>
+          <button class="btn" id="saveModelsBtn">&#x2713; Save Models</button>
         </div>
-        <textarea id="models-editor" class="code-editor" placeholder="class Publisher(models.Model):&#10;    name = models.CharField(max_length=100)">{{ temp_models_code }}</textarea>
+        <textarea id="models-editor" class="code-editor"
+          placeholder="class Publisher(models.Model):&#10;    name = models.CharField(max_length=100)">{{ temp_models_code }}</textarea>
       </div>
-      
-      <!-- Query Editor -->
+
       <div class="editor-wrapper">
         <div class="section-title">
-          <span>ORM Query Editor</span>
-          <button class="btn" id="run-btn" style="background:rgba(0,255,159,0.1); border-color:var(--neon-green); color:var(--neon-green)">Run Query</button>
+          <span><span class="label-accent">&#x276F;</span>&nbsp; ORM Query</span>
+          <button class="btn green" id="runBtn">&#x25B6; Run Query</button>
         </div>
-        <textarea id="query-editor" class="code-editor" placeholder="# Write your Django ORM query here...&#10;Author.objects.all()"></textarea>
+        <textarea id="query-editor" class="code-editor"
+          placeholder="# Write your Django ORM query here...&#10;Author.objects.all()"></textarea>
       </div>
-      
+
     </div>
-    
-    <!-- Right Pane: Terminal -->
+
+    <!-- Right: Terminal -->
     <div class="right-pane">
-      <div class="section-title">Terminal Output</div>
-      <div id="terminal-output">Ready...</div>
+      <div class="section-title" style="margin-bottom:8px">
+        <span><span class="label-accent">$</span>&nbsp; Terminal Output</span>
+        <button class="btn" id="clearBtn" style="font-size:10px; padding:3px 10px;">Clear</button>
+      </div>
+      <div id="terminal-output"><span class="t-dim">Waiting for input...</span></div>
     </div>
+
   </div>
-  
-  <!-- Bottom Section: Tables Horizontal -->
-  <div class="bottom-section" id="tables-list">
-    <div class="tab-controls">
+
+  <!-- Bottom: Table browser -->
+  <div class="bottom-section" id="tablesSection">
+
+    <div class="tab-controls" id="tabControls">
       {% for table in tables_data %}
-        <button class="tab-btn {% if forloop.first %}active{% endif %}" data-target="table-{{ table.name }}">{{ table.name }}</button>
+        <button class="tab-btn {% if forloop.first %}active{% endif %}"
+          data-target="table-{{ table.name }}">{{ table.name }}</button>
       {% empty %}
-        <span style="color:var(--text-dim); font-size:12px;">No tables available</span>
+        <span style="color:var(--text-dim); font-size:11px; font-family:'Rajdhani',sans-serif; letter-spacing:1px;">No tables — save a model to begin</span>
       {% endfor %}
     </div>
-    
+
     {% for table in tables_data %}
     <div class="table-container {% if forloop.first %}active{% endif %}" id="table-{{ table.name }}">
-      <div class="table-header">{{ table.name }} Data</div>
+      <div class="table-header">
+        {{ table.name }}
+        <span class="row-count">{{ table.records|length }} rows</span>
+      </div>
       <div class="data-table-wrap">
         <table class="data-table">
           <thead>
             <tr>
-              {% for field in table.fields %}
-              <th>{{ field }}</th>
-              {% endfor %}
+              {% for field in table.fields %}<th>{{ field }}</th>{% endfor %}
             </tr>
           </thead>
           <tbody>
@@ -679,7 +646,9 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="{{ table.fields|length }}" style="text-align:center; color:var(--text-dim)">No records</td>
+              <td colspan="{{ table.fields|length }}">
+                <div class="empty-state">No records found</div>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -687,214 +656,232 @@
       </div>
     </div>
     {% endfor %}
+
   </div>
 
 </div>
-
 {% endblock %}
 
 <script>
-  function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-          const cookies = document.cookie.split(';');
-          for (let i = 0; i < cookies.length; i++) {
-              const cookie = cookies[i].trim();
-              if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
-      }
-      return cookieValue;
+(function () {
+  'use strict';
+
+  /* ── CSRF: read from cookie set by hidden form above ── */
+  function getCsrf() {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
   }
-  const csrftoken = getCookie('csrftoken');
 
-  // Table Tabs logic
-  function attachTabListeners() {
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tableContainers = document.querySelectorAll('.table-container');
+  /* ── Fetch helper: always returns {ok, status, data/text} ── */
+  async function apiFetch(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrf()
+      },
+      body: JSON.stringify(body)
+    });
 
-    tabBtns.forEach(btn => {
+    const contentType = res.headers.get('content-type') || '';
+
+    /* If Django returned HTML (error page / redirect) instead of JSON */
+    if (!contentType.includes('application/json')) {
+      const text = await res.text();
+      return {
+        ok: false,
+        status: res.status,
+        data: {
+          status: 'error',
+          output: `HTTP ${res.status} — server returned non-JSON response.\n\n` +
+                  `Tip: Check your view returns JsonResponse and the URL is correct.\n\n` +
+                  text.substring(0, 400)   /* show first 400 chars of error page */
+        }
+      };
+    }
+
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  /* ── Terminal helpers ── */
+  const term = document.getElementById('terminal-output');
+
+  function termSet(html) { term.innerHTML = html; }
+  function termLog(msg, cls) {
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    span.textContent = msg;
+    if (term.querySelector('.t-dim') && term.textContent.trim() === 'Waiting for input...') {
+      term.innerHTML = '';
+    }
+    term.appendChild(span);
+    term.appendChild(document.createTextNode('\n'));
+    term.scrollTop = term.scrollHeight;
+  }
+  function termClear() {
+    term.innerHTML = '<span class="t-dim">Cleared.</span>';
+  }
+
+  document.getElementById('clearBtn').onclick = termClear;
+
+  /* ── Tab switching ── */
+  function attachTabs() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        // Remove active from all
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tableContainers.forEach(c => c.classList.remove('active'));
-        
-        // Add active to clicked and target
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.table-container').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
-        const targetId = btn.getAttribute('data-target');
-        const targetContainer = document.getElementById(targetId);
-        if(targetContainer) targetContainer.classList.add('active');
+        const target = document.getElementById(btn.dataset.target);
+        if (target) target.classList.add('active');
       });
     });
   }
-  attachTabListeners();
+  attachTabs();
 
+  /* ── Render tables from API response ── */
   function renderTables(tablesData) {
-    const tablesList = document.getElementById('tables-list');
-    tablesList.innerHTML = '';
-    
-    // Render tabs
-    const tabControls = document.createElement('div');
-    tabControls.className = 'tab-controls';
-    
-    if (tablesData.length === 0) {
-      tabControls.innerHTML = '<span style="color:var(--text-dim); font-size:12px;">No tables available</span>';
-    } else {
-      tablesData.forEach((table, index) => {
-        const btn = document.createElement('button');
-        btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
-        btn.setAttribute('data-target', `table-${table.name.replace(/\s+/g, '-')}`);
-        btn.textContent = table.name;
-        tabControls.appendChild(btn);
-      });
+    const section = document.getElementById('tablesSection');
+
+    /* Remove old tabs + table containers, keep nothing */
+    section.innerHTML = '';
+
+    const tabRow = document.createElement('div');
+    tabRow.className = 'tab-controls';
+    tabRow.id = 'tabControls';
+
+    if (!tablesData || tablesData.length === 0) {
+      tabRow.innerHTML = '<span style="color:var(--text-dim);font-size:11px;font-family:\'Rajdhani\',sans-serif;letter-spacing:1px;">No tables available</span>';
+      section.appendChild(tabRow);
+      return;
     }
-    tablesList.appendChild(tabControls);
-    
-    // Render tables
-    tablesData.forEach((table, index) => {
+
+    tablesData.forEach((table, idx) => {
+      /* Tab button */
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+      btn.dataset.target = 'table-' + table.name;
+      btn.textContent = table.name;
+      tabRow.appendChild(btn);
+
+      /* Table container */
       const container = document.createElement('div');
-      container.className = `table-container ${index === 0 ? 'active' : ''}`;
-      container.id = `table-${table.name.replace(/\s+/g, '-')}`;
-      
-      let html = `<div class="table-header">${table.name} Data</div>
-        <div class="data-table-wrap">
-          <table class="data-table">
-            <thead><tr>`;
-            
-      table.fields.forEach(field => { html += `<th>${field}</th>`; });
-      
-      html += `</tr></thead><tbody>`;
-      
-      if (table.records && table.records.length > 0) {
+      container.className = 'table-container' + (idx === 0 ? ' active' : '');
+      container.id = 'table-' + table.name;
+
+      const rowCount = table.records ? table.records.length : 0;
+
+      let html = `<div class="table-header">${table.name}<span class="row-count">${rowCount} rows</span></div>
+        <div class="data-table-wrap"><table class="data-table"><thead><tr>`;
+      (table.fields || []).forEach(f => { html += `<th>${f}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      if (rowCount > 0) {
         table.records.forEach(record => {
-          html += `<tr>`;
-          table.fields.forEach(field => {
-             html += `<td>${record[field] !== undefined ? record[field] : ''}</td>`;
+          html += '<tr>';
+          (table.fields || []).forEach(f => {
+            const val = record[f];
+            let cls = '';
+            let display = val;
+            if (val === null || val === undefined || val === '') {
+              display = 'null'; cls = 'td-null';
+            } else if (val === true  || val === 'True')  { cls = 'td-bool-t'; }
+            else if (val === false || val === 'False') { cls = 'td-bool-f'; }
+            else if (!isNaN(val) && val !== '') { cls = 'td-num'; }
+            html += `<td class="${cls}">${display}</td>`;
           });
-          html += `</tr>`;
+          html += '</tr>';
         });
       } else {
-        html += `<tr><td colspan="${table.fields.length}" style="text-align:center; color:var(--text-dim)">No records</td></tr>`;
+        html += `<tr><td colspan="${(table.fields||[]).length}"><div class="empty-state">No records found</div></td></tr>`;
       }
-      
-      html += `</tbody></table></div>`;
+
+      html += '</tbody></table></div>';
       container.innerHTML = html;
-      tablesList.appendChild(container);
+      section.appendChild(container);
     });
-    
-    // Re-attach tab click listeners
-    attachTabListeners();
+
+    section.insertBefore(tabRow, section.firstChild);
+    attachTabs();
   }
 
-  // Save Models logic
-  const saveModelsBtn = document.getElementById('save-models-btn');
-  const modelsEditor = document.getElementById('models-editor');
+  /* ── Save Models ── */
+  const saveModelsBtn = document.getElementById('saveModelsBtn');
+  saveModelsBtn.onclick = async () => {
+    const code = document.getElementById('models-editor').value.trim();
+    if (!code) { termLog('Nothing to save.', 't-warn'); return; }
 
-  saveModelsBtn.onclick = () => {
-    const code = modelsEditor.value;
-    terminalOutput.innerHTML = '<span style="color:var(--text-mid)">Validating models...</span>';
-    terminalOutput.classList.remove('error-text');
+    saveModelsBtn.classList.add('running');
+    saveModelsBtn.textContent = '⟳ Saving…';
+    termSet('<span class="t-info">Validating and saving models...</span>');
 
-    fetch('/api/save_models/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-      },
-      body: JSON.stringify({ models_code: code })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if(data.status === 'success') {
-        terminalOutput.textContent = data.message + '\n\nTables list updated automatically!';
-        terminalOutput.classList.remove('error-text');
-        
-        // Dynamically update tables
-        if (data.tables_data) {
-          renderTables(data.tables_data);
-        }
-      } else {
-        terminalOutput.textContent = data.output || data.message;
-        terminalOutput.classList.add('error-text');
-      }
-    })
-    .catch(err => {
-      terminalOutput.textContent = "Network Error: " + err;
-      terminalOutput.classList.add('error-text');
-    });
+    const { data } = await apiFetch('/api/save_models/', { models_code: code });
+
+    saveModelsBtn.classList.remove('running');
+    saveModelsBtn.textContent = '✓ Save Models';
+
+    if (data.status === 'success') {
+      termSet('');
+      termLog('[OK] ' + (data.message || 'Models saved successfully.'), 't-ok');
+      if (data.tables_data) renderTables(data.tables_data);
+    } else {
+      termSet('');
+      termLog('[ERROR] ' + (data.output || data.message || 'Unknown error.'), 't-error');
+    }
   };
 
-  // Run Query logic
-  const runBtn = document.getElementById('run-btn');
-  const queryEditor = document.getElementById('query-editor');
-  const terminalOutput = document.getElementById('terminal-output');
+  /* ── Run Query ── */
+  const runBtn = document.getElementById('runBtn');
+  runBtn.onclick = async () => {
+    const query = document.getElementById('query-editor').value.trim();
+    if (!query) { termLog('No query to run.', 't-warn'); return; }
 
-  runBtn.onclick = () => {
-    const query = queryEditor.value;
-    terminalOutput.innerHTML = '<span style="color:var(--text-mid)">Running...</span>';
-    terminalOutput.classList.remove('error-text');
+    runBtn.classList.add('running');
+    runBtn.textContent = '⟳ Running…';
+    termSet('<span class="t-info">Executing query...</span>');
 
-    fetch('/api/execute/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-      },
-      body: JSON.stringify({ query: query })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if(data.status === 'success') {
-        terminalOutput.textContent = data.output || "No output returned.";
-        if (data.tables_data) {
-          renderTables(data.tables_data);
-        }
-      } else {
-        terminalOutput.textContent = data.output || data.message;
-        terminalOutput.classList.add('error-text');
-      }
-    })
-    .catch(err => {
-      terminalOutput.textContent = "Network Error: " + err;
-      terminalOutput.classList.add('error-text');
-    });
+    const { data } = await apiFetch('/api/execute/', { query });
+
+    runBtn.classList.remove('running');
+    runBtn.textContent = '▶ Run Query';
+
+    if (data.status === 'success') {
+      termSet('');
+      termLog(data.output || 'Query executed — no output returned.', 't-ok');
+      if (data.tables_data) renderTables(data.tables_data);
+    } else {
+      termSet('');
+      termLog(data.output || data.message || 'Unknown error.', 't-error');
+    }
   };
 
-  // Editor indentation support
-  document.querySelectorAll('.code-editor').forEach(editor => {
-    editor.addEventListener('keydown', function(e) {
+  /* ── Tab indentation in editors ── */
+  document.querySelectorAll('.code-editor').forEach(ed => {
+    ed.addEventListener('keydown', e => {
       if (e.key === 'Tab') {
         e.preventDefault();
-        const start = this.selectionStart;
-        const end = this.selectionEnd;
-        // set textarea value to: text before caret + 4 spaces + text after caret
-        this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
-        // put caret at right position again
-        this.selectionStart = this.selectionEnd = start + 4;
+        const s = ed.selectionStart, end = ed.selectionEnd;
+        ed.value = ed.value.substring(0, s) + '    ' + ed.value.substring(end);
+        ed.selectionStart = ed.selectionEnd = s + 4;
       }
     });
   });
 
-  // Profile Dropdown logic (kept from original)
-  (function () {
-    var btn = document.getElementById('profileBtn');
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      btn.classList.toggle('is-open');
-    });
-    document.addEventListener('click', function (e) {
-      if (!btn.contains(e.target)) {
-        btn.classList.remove('is-open');
-      }
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') btn.classList.remove('is-open');
-    });
-  })();
-</script>
+  /* ── Profile dropdown ── */
+  const profileBtn = document.getElementById('profileBtn');
+  profileBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    profileBtn.classList.toggle('is-open');
+  });
+  document.addEventListener('click', e => {
+    if (!profileBtn.contains(e.target)) profileBtn.classList.remove('is-open');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') profileBtn.classList.remove('is-open');
+  });
 
+})();
+</script>
 
 </body>
 </html>
