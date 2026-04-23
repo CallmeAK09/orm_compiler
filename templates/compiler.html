@@ -1010,13 +1010,29 @@ textarea.code-editor:focus {
   /* ── Terminal ── */
   const term = document.getElementById('terminal-output');
   function termSet(html) { term.innerHTML = html; }
-  function termLog(msg, cls) {
-    const span = Object.assign(document.createElement('span'), { textContent: msg });
-    if (cls) span.className = cls;
+  function termLog(msg, cls, typeSpeed = 0) {
     if (term.querySelector('.t-dim') && term.textContent.trim() === 'Waiting for input...') term.innerHTML = '';
+    
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
     term.appendChild(span);
     term.appendChild(document.createTextNode('\n'));
-    term.scrollTop = term.scrollHeight;
+
+    if (typeSpeed > 0) {
+      let i = 0;
+      const timer = setInterval(() => {
+        if (i < msg.length) {
+          span.textContent += msg[i];
+          i++;
+          term.scrollTop = term.scrollHeight;
+        } else {
+          clearInterval(timer);
+        }
+      }, typeSpeed);
+    } else {
+      span.textContent = msg;
+      term.scrollTop = term.scrollHeight;
+    }
   }
   document.getElementById('clearBtn').onclick = () => {
     term.innerHTML = '<span class="t-dim">Cleared.</span>';
@@ -1112,7 +1128,9 @@ textarea.code-editor:focus {
     const { data } = await apiFetch('/api/execute/', { query });
     runBtn.classList.remove('running'); runBtn.textContent = '▶ Run Query';
     if (data.status === 'success') {
-      termSet(''); termLog(data.output || 'Query executed — no output.', 't-ok');
+      termSet(''); 
+      const output = data.output || 'Query executed — no output.';
+      termLog(output, 't-ok', 30);
       if (data.tables_data) renderTables(data.tables_data);
     } else {
       termSet(''); termLog(data.output || data.message || 'Unknown error.', 't-error');

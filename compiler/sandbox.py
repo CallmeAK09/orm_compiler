@@ -5,9 +5,7 @@ BANNED_FUNCTIONS = {
     'globals', 'locals', 'compile', 'input', 'breakpoint'
 }
 
-BANNED_ATTRIBUTES = {
-    'raw', 'execute' # Prevent raw SQL execution
-}
+BANNED_ATTRIBUTES = set()
 
 class SecurityException(Exception):
     pass

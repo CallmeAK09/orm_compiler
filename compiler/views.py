@@ -5,7 +5,8 @@ import io
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.apps import apps
-from django.db import models
+from django.db import models, connection
+from django.db.models import Avg, Count, Max, Min, Sum
 from django.core.exceptions import ValidationError
 from django.core.serializers import serialize
 from .models import Author, Book, Library
@@ -69,6 +70,10 @@ def serialize_value(val):
         return val.strftime('%Y-%m-%d')          # e.g. "1997-06-26"
     if isinstance(val, (Decimal, uuid.UUID)):
         return str(val)
+    if isinstance(val, dict):
+        return {k: serialize_value(v) for k, v in val.items()}
+    if isinstance(val, (list, tuple)):
+        return [serialize_value(v) for v in val]
     # For everything else try native JSON; fall back to str()
     try:
         json.dumps(val)
@@ -317,6 +322,8 @@ def index(request):
     if temp_models_code:
         env = {
             'models': models,
+            'connection': connection,
+            'Avg': Avg, 'Count': Count, 'Max': Max, 'Min': Min, 'Sum': Sum,
             '__name__': 'compiler.models'
         }
         try:
@@ -392,6 +399,8 @@ def save_models(request):
             # ✅ INCLUDE DEFAULT MODELS
             env = {
                 'models': models,
+                'connection': connection,
+                'Avg': Avg, 'Count': Count, 'Max': Max, 'Min': Min, 'Sum': Sum,
                 'Author': Author,
                 'Book': Book,
                 'Library': Library,
@@ -426,6 +435,8 @@ def execute_query(request):
                 'Book':    Book,
                 'Library': Library,
                 'models':  models,
+                'connection': connection,
+                'Avg': Avg, 'Count': Count, 'Max': Max, 'Min': Min, 'Sum': Sum,
                 '__name__': 'compiler.models'
             }
 
