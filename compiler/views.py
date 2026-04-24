@@ -477,3 +477,7 @@ def reset_session(request):
     request.session.create()
     request.session['db_initialized'] = True
     return redirect('dashboard')
+
+
+def documentation(request):
+    return render(request, 'documentation.html')

@@ -1,0 +1,1203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORM Documentation — ORM Studio</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect x='2' y='2' width='30' height='30' rx='7' stroke='%2300f5ff' stroke-width='1.5' fill='%23050a0f'/%3E%3Cpath d='M9 17 L15.5 10 L22 17 L15.5 24 Z' stroke='%2300f5ff' stroke-width='1.5' fill='rgba(0,245,255,0.07)'/%3E%3Cpath d='M17 10.5 L23.5 17 L17 23.5' stroke='%2300ff9f' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='17' cy='17' r='2.2' fill='%2300f5ff'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --neon-cyan:#00f5ff;
+  --neon-green:#00ff9f;
+  --neon-blue:#4db8ff;
+  --neon-violet:#7b5ea7;
+  --bg-void:#050a0f;
+  --bg-panel:#07111c;
+  --bg-surface:#0c1825;
+  --bg-elevated:#0f1f30;
+  --border-glow:rgba(0,245,255,0.18);
+  --border-dim:rgba(0,245,255,0.07);
+  --text-bright:#d0eeff;
+  --text-mid:#8ab8d0;
+  --text-dim:#4a6e82;
+  --beam-color:rgba(0,245,255,0.85);
+  --beam-green:rgba(0,255,159,0.7);
+}
+html,body{font-family:'JetBrains Mono',monospace;background:var(--bg-void);color:var(--text-bright);height:100%;overflow:hidden}
+
+/* Base text color — bright readable default */
+* { color: var(--text-bright); }
+
+/* Semantic overrides */
+strong, b { color: var(--neon-blue); font-weight: 700; }
+h1, h2, h3, h4, h5, h6 { color: var(--neon-cyan); }
+p { color: var(--text-bright); }
+code { color: var(--neon-cyan); }
+a { color: var(--neon-cyan); }
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg-void)}
+::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.15);border-radius:10px}
+
+/* ── Subtle noise grain overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9996; opacity: 0.6;
+}
+
+/* ── Scanlines ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.018) 2px, rgba(0,0,0,0.018) 4px
+  );
+  pointer-events: none; z-index: 9995;
+}
+
+/* ═══════════════════════════════════════════════════════
+   VIEWPORT-WIDE BEAM BORDER
+═══════════════════════════════════════════════════════ */
+@property --vb-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+#viewport-beam {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 9997;
+  border: 2px solid transparent;
+  border-image: conic-gradient(
+    from var(--vb-angle),
+    transparent 0%, var(--beam-color) 5%, rgba(0,245,255,0.3) 9%,
+    transparent 13%, transparent 47%,
+    var(--beam-green) 52%, rgba(0,255,159,0.3) 56%,
+    transparent 60%, transparent 100%
+  ) 1;
+  animation: vb-spin 6s linear infinite;
+}
+@keyframes vb-spin { to { --vb-angle: 360deg; } }
+
+/* ═══════════════════════════════════════════════════════
+   LOADING SCREEN
+═══════════════════════════════════════════════════════ */
+#loading-screen {
+  position: fixed; inset: 0;
+  z-index: 99999;
+  backdrop-filter: blur(22px) brightness(0.38) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) brightness(0.38) saturate(1.2);
+  background: rgba(5, 10, 15, 0.52);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 24px;
+  animation: loader-fade-out 0.7s ease-in-out 1.2s forwards;
+}
+#loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+@keyframes loader-fade-out {
+  0%   { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+.loader-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 38px; font-weight: 700;
+  letter-spacing: 12px; text-transform: uppercase;
+  background: linear-gradient(90deg, var(--neon-cyan) 0%, var(--neon-green) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: loader-shimmer 2s linear infinite;
+}
+@keyframes loader-shimmer {
+  0%   { background-position: 250% center; }
+  100% { background-position: -250% center; }
+}
+.loader-bar-wrap { width: 200px; height: 2px; background: rgba(0,245,255,0.08); border-radius: 2px; overflow: hidden; }
+.loader-bar {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+  box-shadow: 0 0 10px rgba(0,245,255,0.85);
+  animation: loader-progress 1.2s cubic-bezier(0.42, 0, 0.18, 1) forwards;
+}
+@keyframes loader-progress { to { width: 100%; } }
+
+/* NAV */
+nav.orm-nav{height:54px;background:var(--bg-panel);border-bottom:1px solid var(--border-glow);display:flex;align-items:center;padding:0 24px;position:fixed;top:0;left:0;right:0;z-index:1000;box-shadow:0 4px 20px rgba(0,0,0,0.5);gap:16px}
+
+.orm-logo{display:flex;align-items:center;gap:9px;text-decoration:none;user-select:none}
+.orm-logo-text{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;letter-spacing:2px;background:linear-gradient(90deg,var(--neon-cyan) 0%,var(--neon-green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-transform:uppercase}
+.nav-links{margin-left:auto;display:flex;gap:6px;align-items:center}
+.nav-link{text-decoration:none;color:var(--text-mid);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:1px;transition:all 0.2s;padding:4px 8px;border-radius:4px;border:1px solid transparent;cursor:pointer;background:none;opacity:0.8}
+.nav-link:hover{color:var(--text-bright);border-color:var(--border-glow);opacity:1}
+.nav-link.active{color:var(--neon-cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.1);opacity:1;box-shadow:0 0 10px rgba(0,245,255,0.15)}
+
+/* BACK BUTTON */
+.back-btn {
+  position: fixed; top: 68px; left: 24px; z-index: 1001;
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none; color: var(--neon-cyan);
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  padding: 7px 14px; border: 1px solid rgba(0,245,255,0.25);
+  border-radius: 4px; transition: all 0.25s;
+  background: rgba(0,245,255,0.06);
+  backdrop-filter: blur(4px);
+}
+.back-btn:hover {
+  color: var(--text-bright); border-color: var(--neon-cyan);
+  background: rgba(0,245,255,0.12); box-shadow: 0 0 15px rgba(0,245,255,0.3);
+  transform: translateX(4px);
+}
+.back-btn svg { width: 14px; height: 14px; stroke: currentColor; }
+
+/* SLIDE CONTAINER */
+#slide-viewport{position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
+#slide-track{display:flex;flex-direction:column;transition:transform 0.6s cubic-bezier(0.77,0,0.18,1);will-change:transform}
+
+/* INDIVIDUAL SLIDE */
+.slide{width:100%;height:calc(100vh - 54px);overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px 60px;flex-shrink:0}
+.slide::-webkit-scrollbar{width:4px}
+.slide-inner{max-width:960px;width:100%}
+
+/* SECTION CARD */
+.doc-section{background:var(--bg-panel);border:1px solid var(--border-dim);border-radius:12px;padding:32px;margin-bottom:28px;box-shadow:0 8px 32px rgba(0,0,0,0.4);position:relative;overflow:hidden}
+.doc-section::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom,var(--neon-cyan),var(--neon-green));opacity:0.6}
+.doc-section h2{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--neon-green);margin-bottom:20px;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border-dim);padding-bottom:10px;display:flex;align-items:center;gap:10px}
+.doc-section h2::before{content:'>';color:var(--neon-cyan)}
+.doc-section h3{font-family:'Rajdhani',sans-serif;font-size:15px;color:var(--neon-cyan);margin:18px 0 10px;text-transform:uppercase;letter-spacing:1px}
+.doc-section p{line-height:1.8;color:var(--text-bright);margin-bottom:14px;font-size:14px}
+.doc-section p:last-child{margin-bottom:0}
+
+/* SLIDE TITLE */
+.slide-title{font-family:'Rajdhani',sans-serif;font-size:40px;font-weight:700;letter-spacing:8px;text-transform:uppercase;color:var(--neon-cyan);text-shadow:0 0 20px rgba(0,245,255,0.3);margin-bottom:6px;text-align:center}
+.slide-subtitle{color:var(--text-dim);font-size:12px;letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:40px}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+.info-card{background:var(--bg-surface);padding:18px;border-radius:8px;border:1px solid rgba(0,245,255,0.1)}
+.info-card.green{border-color:rgba(0,255,159,0.2)}
+.info-card.red{border-color:rgba(255,80,96,0.2)}
+.info-card h3{font-family:'Rajdhani',sans-serif;font-size:14px;color:var(--neon-cyan);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.info-card h3.green{color:var(--neon-green)}
+.info-card h3.red{color:#ff5060}
+.info-card ul{list-style:none}
+.info-card li{margin-bottom:8px;padding-left:16px;position:relative;color:var(--text-mid);font-size:12px;line-height:1.6}
+.info-card li::before{content:'•';position:absolute;left:0;color:var(--neon-green)}
+.info-card li strong { color: var(--neon-blue); }
+.info-card li code { color: var(--neon-cyan); background: rgba(0,245,255,0.07); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+.info-card p{font-size:12px;line-height:1.7;color:var(--text-mid);margin-bottom:8px}
+
+/* CODE */
+.code-block{background:#020c04;border:1px solid rgba(0,255,159,0.1);border-radius:6px;padding:14px 16px;margin:12px 0;position:relative;overflow-x:auto}
+.code-block code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon-green);line-height:1.7;white-space:pre}
+.code-label{position:absolute;top:0;right:0;background:rgba(0,255,159,0.1);color:var(--neon-green);font-size:9px;padding:2px 8px;border-bottom-left-radius:6px;text-transform:uppercase}
+.code-comment{color:rgba(0,255,159,0.55)}
+.code-kw{color:#00c8ff}
+.code-str{color:#ffd700}
+.code-fn{color:#ff9f00}
+
+/* METHOD TAGS */
+.method-tag{display:inline-block;background:rgba(0,245,255,0.1);color:var(--neon-cyan);padding:2px 8px;border-radius:4px;font-weight:700;font-size:11px;margin-right:6px;font-family:'JetBrains Mono',monospace}
+.method-block{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border-dim)}
+.method-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.method-desc{font-size:12px;color:var(--text-bright);margin:6px 0 0;line-height:1.6;opacity:0.9}
+.method-desc code { color: var(--neon-cyan); background: rgba(0,245,255,0.07); padding: 1px 5px; border-radius: 3px; }
+.method-desc strong { color: var(--neon-blue); }
+
+/* LOOKUP TABLE */
+.lookup-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.lookup-table th{background:rgba(0,245,255,0.07);color:var(--neon-cyan);padding:8px 12px;text-align:left;font-family:'Rajdhani',sans-serif;text-transform:uppercase;letter-spacing:1px;font-size:11px;border-bottom:1px solid var(--border-glow)}
+.lookup-table td{padding:7px 12px;border-bottom:1px solid var(--border-dim);color:var(--text-mid);vertical-align:top;line-height:1.5}
+.lookup-table td:first-child{color:var(--neon-green);font-weight:600;white-space:nowrap}
+.lookup-table td code{background:rgba(0,245,255,0.07);color:var(--neon-cyan);padding:1px 5px;border-radius:3px;font-size:11px}
+.lookup-table tr:last-child td{border-bottom:none}
+
+/* IMPORT BADGE */
+.import-line{background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.12);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text-mid);margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+.import-line .kw{color:#00c8ff}
+.import-line .mod{color:var(--neon-green)}
+.import-line .sym{color:var(--neon-cyan)}
+
+/* PROGRESS / NAV DOTS */
+#progress-bar{position:fixed;bottom:0;left:0;right:0;height:2px;background:rgba(0,245,255,0.06);z-index:999}
+#progress-fill{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-green));transition:width 0.4s ease;width:0%}
+#slide-counter{position:fixed;bottom:12px;right:20px;font-size:11px;color:var(--text-dim);z-index:999;font-family:'Rajdhani',sans-serif;letter-spacing:2px}
+#dot-nav{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:999}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--text-dim);cursor:pointer;transition:all 0.3s;border:2px solid transparent;padding:0;box-sizing:content-box}
+.dot.active{background:var(--neon-cyan);box-shadow:0 0 12px rgba(0,245,255,0.8);transform:scale(1.3);border-color:rgba(0,245,255,0.3)}
+.dot:hover{background:var(--text-bright);transform:scale(1.2)}
+
+/* HINT */
+#scroll-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:var(--text-dim);font-size:11px;letter-spacing:3px;text-transform:uppercase;z-index:999;pointer-events:none;transition:opacity 0.5s}
+#scroll-hint::after{content:'↓';display:block;text-align:center;animation:bounce 1.5s infinite;color:var(--neon-cyan)}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+
+/* SLIDE ENTRY ANIMATIONS */
+.slide.entering .doc-section{animation:fadeSlideIn 0.5s ease-out both}
+.slide.entering .doc-section:nth-child(1){animation-delay:0.05s}
+.slide.entering .doc-section:nth-child(2){animation-delay:0.15s}
+.slide.entering .doc-section:nth-child(3){animation-delay:0.25s}
+.slide.entering .doc-section:nth-child(4){animation-delay:0.35s}
+.slide.entering .slide-title{animation:fadeSlideIn 0.5s ease-out both}
+.slide.entering .slide-subtitle{animation:fadeSlideIn 0.5s ease-out 0.1s both}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* TAG ROWS */
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.tag{display:inline-block;background:rgba(0,255,159,0.08);border:1px solid rgba(0,255,159,0.2);color:var(--neon-green);padding:3px 9px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace}
+.tag.cyan{background:rgba(0,245,255,0.08);border-color:rgba(0,245,255,0.2);color:var(--neon-cyan)}
+
+/* SECTION SEPARATOR */
+.sep{border:none;border-top:1px solid var(--border-dim);margin:20px 0}
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loader-title">ORM DOCS</div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+</div>
+
+<div id="viewport-beam"></div>
+
+<nav class="orm-nav">
+  <a href="/" class="orm-logo">
+    <span class="orm-logo-text">ORM Studio</span>
+  </a>
+  <div class="nav-links" id="nav-links"></div>
+</nav>
+
+<a href="/" class="back-btn" title="Back to Shell">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+  <span>Back to Shell</span>
+</a>
+
+<div id="slide-viewport">
+  <div id="slide-track"></div>
+</div>
+
+<div id="dot-nav"></div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="slide-counter"></div>
+<div id="scroll-hint">scroll or use arrow keys</div>
+
+<script>
+const SLIDES = [
+/* ─────────────────────────────────────────────────────── 0: COVER ── */
+{
+  nav: "Intro",
+  html: `
+<div class="slide-title">ORM COMMANDS</div>
+<div class="slide-subtitle">Architectural Reference &amp; Complete Query Guide</div>
+<div class="doc-section">
+  <h2>What is ORM?</h2>
+  <p><strong>Object-Relational Mapping (ORM)</strong> is a technique that lets you query and manipulate a database using an object-oriented paradigm. In Django, the ORM is an abstraction layer between your Python code and any supported SQL backend (PostgreSQL, MySQL, SQLite, Oracle).</p>
+  <div class="grid-2">
+    <div class="info-card">
+      <h3>Why use it?</h3>
+      <ul>
+        <li><strong>Productivity:</strong> Write Python instead of raw SQL strings.</li>
+        <li><strong>Portability:</strong> Switch databases with minimal code changes.</li>
+        <li><strong>Security:</strong> Automatic SQL injection protection.</li>
+        <li><strong>Migrations:</strong> Schema changes tracked and versioned.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Core concepts</h3>
+      <ul>
+        <li><strong>Model:</strong> Python class → database table.</li>
+        <li><strong>Field:</strong> Class attribute → table column.</li>
+        <li><strong>QuerySet:</strong> Lazy, chainable collection of DB records.</li>
+        <li><strong>Manager:</strong> Entry point to the QuerySet API (default: <code>objects</code>).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="doc-section">
+  <h2>Pros &amp; Cons</h2>
+  <div class="grid-2">
+    <div class="info-card green">
+      <h3 class="green">Advantages</h3>
+      <ul>
+        <li>Rapid development and cleaner code.</li>
+        <li>Integrated validation, signals, and hooks.</li>
+        <li>Automatic schema migrations via <code>makemigrations</code>.</li>
+        <li>Rich API for complex relationships (FK, M2M, OneToOne).</li>
+        <li>Works identically across supported database backends.</li>
+      </ul>
+    </div>
+    <div class="info-card red">
+      <h3 class="red">Disadvantages</h3>
+      <ul>
+        <li>Overhead for extremely simple, high-frequency queries.</li>
+        <li>"N+1" problem if relationships aren't prefetched.</li>
+        <li>Legacy schemas may require <code>managed = False</code> workarounds.</li>
+        <li>Very complex SQL is sometimes cleaner as raw queries.</li>
+      </ul>
+    </div>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 1: IMPORTS ── */
+{
+  nav: "Imports",
+  html: `
+<div class="doc-section">
+  <h2>Imports Cheat Sheet</h2>
+  <p>Everything you'll ever need to import for ORM work — organised by module.</p>
+
+  <h3>Models &amp; Fields</h3>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db</span> <span class="kw">import</span> <span class="sym">models</span></div>
+
+  <h3>Database Connection &amp; Transactions</h3>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db</span> <span class="kw">import</span> <span class="sym">connection, transaction, DatabaseError, IntegrityError</span></div>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Q, F, Value, Case, When, ExpressionWrapper</span></div>
+
+  <h3>Aggregation Functions</h3>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Count, Sum, Avg, Max, Min, StdDev, Variance</span></div>
+
+  <h3>String &amp; Date Functions</h3>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models.functions</span> <span class="kw">import</span> <span class="sym">Concat, Coalesce, Upper, Lower, Length, Trim, Now, TruncDate, TruncMonth, TruncYear, ExtractYear, ExtractMonth, ExtractDay, Cast</span></div>
+
+  <h3>Subqueries</h3>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Subquery, OuterRef, Exists, Prefetch</span></div>
+
+  <h3>Pagination</h3>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.core.paginator</span> <span class="kw">import</span> <span class="sym">Paginator, EmptyPage, PageNotAnInteger</span></div>
+
+  <h3>Field Types (reference)</h3>
+  <div class="tag-row">
+    <span class="tag">models.CharField</span><span class="tag">models.TextField</span><span class="tag">models.IntegerField</span><span class="tag">models.FloatField</span><span class="tag">models.DecimalField</span><span class="tag">models.BooleanField</span><span class="tag">models.DateField</span><span class="tag">models.DateTimeField</span><span class="tag">models.TimeField</span><span class="tag">models.EmailField</span><span class="tag">models.URLField</span><span class="tag">models.SlugField</span><span class="tag">models.UUIDField</span><span class="tag">models.FileField</span><span class="tag">models.ImageField</span><span class="tag">models.JSONField</span><span class="tag">models.ForeignKey</span><span class="tag">models.ManyToManyField</span><span class="tag">models.OneToOneField</span>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 2: BASIC QUERYSETS ── */
+{
+  nav: "QuerySets",
+  html: `
+<div class="doc-section">
+  <h2>QuerySet Basics — Retrieval</h2>
+
+  <div class="method-block">
+    <span class="method-tag">.all()</span>
+    <p class="method-desc">Returns a QuerySet of every object. Lazy — no DB hit until evaluated.</p>
+    <div class="code-block"><code>authors = Author.objects.all()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.filter(**kwargs)</span>
+    <p class="method-desc">Returns objects matching ALL given lookup parameters (SQL WHERE with AND).</p>
+    <div class="code-block"><code>Book.objects.filter(published_date__year__gt=2000, language='English')</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.exclude(**kwargs)</span>
+    <p class="method-desc">Returns objects that do NOT match the lookup parameters.</p>
+    <div class="code-block"><code>Book.objects.exclude(language='English')</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.get(**kwargs)</span>
+    <p class="method-desc">Returns a single object. Raises <code>DoesNotExist</code> or <code>MultipleObjectsReturned</code>.</p>
+    <div class="code-block"><code>author = Author.objects.get(id=1)
+author = Author.objects.get(email__iexact='ada@example.com')</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.first()</span> <span class="method-tag">.last()</span>
+    <p class="method-desc">Returns the first/last object of a QuerySet, or <code>None</code> if empty.</p>
+    <div class="code-block"><code>Book.objects.order_by('published_date').first()
+Book.objects.order_by('-published_date').last()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.get_or_create(**kwargs)</span>
+    <p class="method-desc">Returns <code>(instance, created)</code> — fetches if exists, otherwise creates.</p>
+    <div class="code-block"><code>author, created = Author.objects.get_or_create(
+    email='ada@example.com',
+    defaults={'name': 'Ada Lovelace'}
+)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.update_or_create(**kwargs)</span>
+    <p class="method-desc">Like <code>get_or_create</code> but also updates fields if the record exists.</p>
+    <div class="code-block"><code>author, created = Author.objects.update_or_create(
+    email='ada@example.com',
+    defaults={'name': 'Ada Lovelace', 'bio': 'Mathematician'}
+)</code></div>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 3: WRITE OPERATIONS ── */
+{
+  nav: "Write",
+  html: `
+<div class="doc-section">
+  <h2>Creating &amp; Modifying Records</h2>
+
+  <div class="method-block">
+    <span class="method-tag">.create(**kwargs)</span>
+    <p class="method-desc">Creates and saves a new object in one step.</p>
+    <div class="code-block"><code>book = Book.objects.create(title='Dune', author=author, pages=412)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.bulk_create(objs)</span>
+    <p class="method-desc">Inserts multiple objects in a single SQL INSERT. Very efficient for large datasets.</p>
+    <div class="code-block"><code>Book.objects.bulk_create([
+    Book(title='1984', author=orwell),
+    Book(title='Animal Farm', author=orwell),
+], batch_size=500)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.bulk_update(objs, fields)</span>
+    <p class="method-desc">Updates a list of objects in bulk for specified fields.</p>
+    <div class="code-block"><code>books = list(Book.objects.filter(language=''))
+for b in books:
+    b.language = 'English'
+Book.objects.bulk_update(books, ['language'], batch_size=200)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.update(**kwargs)</span>
+    <p class="method-desc">Updates all objects in a QuerySet in one SQL UPDATE. Does not call <code>save()</code> or trigger signals.</p>
+    <div class="code-block"><code>Book.objects.filter(language='').update(language='English')
+<span class="code-comment"># Using F() to avoid race conditions</span>
+Book.objects.update(view_count=F('view_count') + 1)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.delete()</span>
+    <p class="method-desc">Deletes all objects in the QuerySet. Returns <code>(count, {model: count})</code>.</p>
+    <div class="code-block"><code>deleted_count, breakdown = Book.objects.filter(pages=0).delete()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">instance.save()</span>
+    <p class="method-desc">Save a single model instance. Use <code>update_fields</code> to save only specific columns.</p>
+    <div class="code-block"><code>book = Book.objects.get(id=5)
+book.title = 'New Title'
+book.save(update_fields=['title'])</code></div>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 4: ORDERING / SLICING ── */
+{
+  nav: "Order & Slice",
+  html: `
+<div class="doc-section">
+  <h2>Ordering, Slicing &amp; Deduplication</h2>
+
+  <div class="method-block">
+    <span class="method-tag">.order_by(*fields)</span>
+    <p class="method-desc">Sort results. Prefix with <code>-</code> for descending. Use <code>?</code> for random.</p>
+    <div class="code-block"><code>Book.objects.order_by('published_date')         <span class="code-comment"># ASC</span>
+Book.objects.order_by('-published_date')        <span class="code-comment"># DESC</span>
+Book.objects.order_by('author__name', '-pages') <span class="code-comment"># Multi-field</span>
+Book.objects.order_by('?')                      <span class="code-comment"># Random</span></code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">QuerySet[start:stop]</span> — Slicing (SQL LIMIT / OFFSET)
+    <p class="method-desc">Python slicing maps to SQL LIMIT/OFFSET. Negative indexing is not supported.</p>
+    <div class="code-block"><code>Book.objects.all()[:5]           <span class="code-comment"># LIMIT 5</span>
+Book.objects.all()[5:10]         <span class="code-comment"># OFFSET 5 LIMIT 5</span>
+Book.objects.order_by('id')[0]   <span class="code-comment"># Single row — avoid .get() when ordering</span></code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.distinct()</span>
+    <p class="method-desc">Removes duplicate rows from the result set (SQL DISTINCT).</p>
+    <div class="code-block"><code>Book.objects.filter(author__nationality='British').distinct()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.reverse()</span>
+    <p class="method-desc">Reverses the ordering of a QuerySet. Requires an existing ordering.</p>
+    <div class="code-block"><code>Book.objects.order_by('title').reverse()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.none()</span>
+    <p class="method-desc">Returns an empty QuerySet. Useful to short-circuit conditional query building.</p>
+    <div class="code-block"><code>if not user.is_authenticated:
+    return Book.objects.none()</code></div>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 5: VALUES / FLAT ── */
+{
+  nav: "values()",
+  html: `
+<div class="doc-section">
+  <h2>values(), values_list() &amp; Projections</h2>
+  <p>Use these when you don't need full model instances — they are significantly faster.</p>
+
+  <div class="method-block">
+    <span class="method-tag">.values(*fields)</span>
+    <p class="method-desc">Returns a QuerySet of <strong>dictionaries</strong> instead of model instances.</p>
+    <div class="code-block"><code><span class="code-comment"># Returns: [{'title': 'Dune', 'pages': 412}, ...]</span>
+Book.objects.values('title', 'pages')
+
+<span class="code-comment"># Traverse ForeignKey with double underscore</span>
+Book.objects.values('title', 'author__name')
+
+<span class="code-comment"># No args = all fields as dict</span>
+Book.objects.values()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.values_list(*fields)</span>
+    <p class="method-desc">Returns a QuerySet of <strong>tuples</strong> instead of model instances.</p>
+    <div class="code-block"><code><span class="code-comment"># Returns: [('Dune', 412), ('1984', 328), ...]</span>
+Book.objects.values_list('title', 'pages')
+
+<span class="code-comment"># flat=True for a simple list when selecting ONE field</span>
+Book.objects.values_list('title', flat=True)
+<span class="code-comment"># Returns: ['Dune', '1984', ...]</span>
+
+<span class="code-comment"># named=True returns named tuples</span>
+Book.objects.values_list('title', 'pages', named=True)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.only(*fields)</span>
+    <p class="method-desc">Deferred loading — loads only specified fields. Accessing other fields triggers extra queries.</p>
+    <div class="code-block"><code><span class="code-comment"># Only SELECT id, title from the DB</span>
+Book.objects.only('title')</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.defer(*fields)</span>
+    <p class="method-desc">Deferred loading — loads all fields except specified ones.</p>
+    <div class="code-block"><code><span class="code-comment"># Skip large/expensive fields</span>
+Book.objects.defer('full_text', 'cover_image')</code></div>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 6: AGGREGATE ── */
+{
+  nav: "aggregate()",
+  html: `
+<div class="doc-section">
+  <h2>aggregate() — Whole-QuerySet Statistics</h2>
+  <p><code>aggregate()</code> returns a <strong>single dictionary</strong> of calculated values over the entire QuerySet. It terminates the QuerySet (returns a plain dict, not a QuerySet).</p>
+
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Count, Sum, Avg, Max, Min, StdDev, Variance</span></div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="info-card">
+      <h3>Aggregate Functions</h3>
+      <ul>
+        <li><code>Count('field')</code> — number of rows</li>
+        <li><code>Sum('field')</code> — total sum</li>
+        <li><code>Avg('field')</code> — arithmetic mean</li>
+        <li><code>Max('field')</code> — maximum value</li>
+        <li><code>Min('field')</code> — minimum value</li>
+        <li><code>StdDev('field')</code> — standard deviation</li>
+        <li><code>Variance('field')</code> — statistical variance</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Count Options</h3>
+      <ul>
+        <li><code>Count('id')</code> — count all rows</li>
+        <li><code>Count('field', distinct=True)</code> — distinct values only</li>
+        <li><code>Count('*')</code> — count including NULLs</li>
+        <li>All aggregates accept <code>filter=Q(...)</code> for conditional aggregation</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-block" style="margin-top:20px">
+    <div class="code-label">Examples</div>
+    <code><span class="code-comment"># Single aggregate</span>
+Book.objects.aggregate(Avg('pages'))
+<span class="code-comment"># → {'pages__avg': 347.5}</span>
+
+<span class="code-comment"># Multiple aggregates with custom keys</span>
+Book.objects.aggregate(
+    total=Count('id'),
+    avg_pages=Avg('pages'),
+    max_pages=Max('pages'),
+    min_pages=Min('pages'),
+    total_pages=Sum('pages'),
+)
+
+<span class="code-comment"># Aggregate over filtered QuerySet</span>
+Book.objects.filter(language='English').aggregate(
+    avg_pages=Avg('pages'),
+    book_count=Count('id', distinct=True),
+)
+
+<span class="code-comment"># Conditional aggregate — books before 2000</span>
+from django.db.models import Q
+Book.objects.aggregate(
+    old_books=Count('id', filter=Q(published_date__year__lt=2000)),
+    new_books=Count('id', filter=Q(published_date__year__gte=2000)),
+)</code>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 7: ANNOTATE ── */
+{
+  nav: "annotate()",
+  html: `
+<div class="doc-section">
+  <h2>annotate() — Per-Object Annotations</h2>
+  <p><code>annotate()</code> adds a calculated field to <strong>each object</strong> in the QuerySet (SQL GROUP BY per row). Unlike <code>aggregate()</code>, the result is still a QuerySet you can filter, order, and chain.</p>
+
+  <div class="code-block">
+    <div class="code-label">Examples</div>
+    <code><span class="code-comment"># Count books per author</span>
+from django.db.models import Count, Avg, Sum, Max, Min, F, Value
+authors = Author.objects.annotate(book_count=Count('book'))
+for a in authors:
+    print(a.name, a.book_count)
+
+<span class="code-comment"># Average pages per author's books, order by it</span>
+Author.objects.annotate(avg_pages=Avg('book__pages')) \
+              .order_by('-avg_pages')
+
+<span class="code-comment"># Annotate then filter on annotation</span>
+Author.objects.annotate(book_count=Count('book')) \
+              .filter(book_count__gte=3)
+
+<span class="code-comment"># Computed field using F() expressions</span>
+Book.objects.annotate(
+    profit=F('price') - F('cost'),
+    title_length=Length('title'),   <span class="code-comment"># from django.db.models.functions</span>
+)
+
+<span class="code-comment"># Annotate with a static value</span>
+Book.objects.annotate(source=Value('library'))
+
+<span class="code-comment"># Annotate with Case/When (conditional)</span>
+from django.db.models import Case, When, IntegerField
+Book.objects.annotate(
+    size=Case(
+        When(pages__lt=200, then=Value('short')),
+        When(pages__lt=500, then=Value('medium')),
+        default=Value('long'),
+        output_field=models.CharField(),
+    )
+)</code>
+  </div>
+
+  <div class="info-card" style="margin-top:16px">
+    <h3>annotate() vs aggregate()</h3>
+    <ul>
+      <li><strong>annotate():</strong> Adds a field to each row → returns a QuerySet of objects.</li>
+      <li><strong>aggregate():</strong> Reduces the whole QuerySet to a single dict of values.</li>
+      <li>Think of annotate as <code>SELECT *, COUNT(...)</code> and aggregate as <code>SELECT COUNT(*) FROM ...</code></li>
+    </ul>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 8: LOOKUPS ── */
+{
+  nav: "Lookups",
+  html: `
+<div class="doc-section">
+  <h2>Field Lookups (filter/exclude/get)</h2>
+  <p>Use these as <code>field__lookup=value</code> in <code>.filter()</code>, <code>.exclude()</code>, or <code>.get()</code>.</p>
+
+  <h3>Comparison</h3>
+  <table class="lookup-table">
+    <tr><th>Lookup</th><th>SQL equivalent</th><th>Example</th></tr>
+    <tr><td>exact</td><td>= 'value'</td><td><code>name__exact='Ada'</code></td></tr>
+    <tr><td>iexact</td><td>ILIKE 'value'</td><td><code>name__iexact='ada'</code></td></tr>
+    <tr><td>gt</td><td>> value</td><td><code>pages__gt=300</code></td></tr>
+    <tr><td>gte</td><td>>= value</td><td><code>pages__gte=300</code></td></tr>
+    <tr><td>lt</td><td>&lt; value</td><td><code>pages__lt=100</code></td></tr>
+    <tr><td>lte</td><td>&lt;= value</td><td><code>pages__lte=100</code></td></tr>
+  </table>
+
+  <h3>String</h3>
+  <table class="lookup-table">
+    <tr><th>Lookup</th><th>SQL equivalent</th><th>Example</th></tr>
+    <tr><td>contains</td><td>LIKE '%val%'</td><td><code>title__contains='war'</code></td></tr>
+    <tr><td>icontains</td><td>ILIKE '%val%'</td><td><code>title__icontains='war'</code></td></tr>
+    <tr><td>startswith</td><td>LIKE 'val%'</td><td><code>title__startswith='The'</code></td></tr>
+    <tr><td>istartswith</td><td>ILIKE 'val%'</td><td><code>title__istartswith='the'</code></td></tr>
+    <tr><td>endswith</td><td>LIKE '%val'</td><td><code>title__endswith='ing'</code></td></tr>
+    <tr><td>iendswith</td><td>ILIKE '%val'</td><td><code>title__iendswith='ing'</code></td></tr>
+    <tr><td>regex</td><td>REGEXP 'pattern'</td><td><code>title__regex=r'^The'</code></td></tr>
+    <tr><td>iregex</td><td>IREGEXP 'pattern'</td><td><code>title__iregex=r'^the'</code></td></tr>
+  </table>
+
+  <h3>Membership &amp; Null</h3>
+  <table class="lookup-table">
+    <tr><th>Lookup</th><th>SQL equivalent</th><th>Example</th></tr>
+    <tr><td>in</td><td>IN (…)</td><td><code>id__in=[1,2,3]</code></td></tr>
+    <tr><td>isnull</td><td>IS NULL / IS NOT NULL</td><td><code>bio__isnull=True</code></td></tr>
+    <tr><td>range</td><td>BETWEEN a AND b</td><td><code>pages__range=(200, 500)</code></td></tr>
+  </table>
+
+  <h3>Date &amp; Time</h3>
+  <table class="lookup-table">
+    <tr><th>Lookup</th><th>Example</th></tr>
+    <tr><td>date</td><td><code>created_at__date=date.today()</code></td></tr>
+    <tr><td>year / month / day</td><td><code>published_date__year=2020</code></td></tr>
+    <tr><td>week / week_day</td><td><code>published_date__week=40</code></td></tr>
+    <tr><td>hour / minute / second</td><td><code>created_at__hour=9</code></td></tr>
+    <tr><td>quarter</td><td><code>published_date__quarter=1</code></td></tr>
+    <tr><td>time</td><td><code>created_at__time=time(9, 0)</code></td></tr>
+  </table>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 9: Q & F ── */
+{
+  nav: "Q &amp; F",
+  html: `
+<div class="doc-section">
+  <h2>Q() — Complex Queries with OR / NOT</h2>
+  <p>The <code>Q</code> object lets you combine multiple conditions using <code>&amp;</code> (AND), <code>|</code> (OR), and <code>~</code> (NOT).</p>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Q</span></div>
+  <div class="code-block">
+    <code><span class="code-comment"># OR condition</span>
+Book.objects.filter(Q(language='English') | Q(language='French'))
+
+<span class="code-comment"># AND (same as passing multiple kwargs but explicit)</span>
+Book.objects.filter(Q(pages__gt=300) &amp; Q(language='English'))
+
+<span class="code-comment"># NOT</span>
+Book.objects.filter(~Q(language='English'))
+
+<span class="code-comment"># Complex nesting</span>
+Book.objects.filter(
+    (Q(pages__gt=400) | Q(language='French')) &amp; ~Q(author__isnull=True)
+)
+
+<span class="code-comment"># Q objects can be stored and combined dynamically</span>
+conditions = Q()
+if search:
+    conditions &amp;= Q(title__icontains=search)
+if min_pages:
+    conditions &amp;= Q(pages__gte=min_pages)
+Book.objects.filter(conditions)</code>
+  </div>
+</div>
+
+<div class="doc-section">
+  <h2>F() — Reference Field Values in Expressions</h2>
+  <p><code>F()</code> objects reference model field values at the database level — no Python round-trip. Essential for atomic updates.</p>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">F</span></div>
+  <div class="code-block">
+    <code><span class="code-comment"># Atomic increment — safe for concurrent requests</span>
+Book.objects.filter(id=5).update(view_count=F('view_count') + 1)
+
+<span class="code-comment"># Compare two fields on the same row</span>
+Book.objects.filter(price__gt=F('cost') * 2)
+
+<span class="code-comment"># Use in annotate</span>
+Book.objects.annotate(margin=F('price') - F('cost'))
+
+<span class="code-comment"># Cross-relation field reference</span>
+Book.objects.filter(pages__gt=F('author__avg_pages'))</code>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 10: RELATIONSHIPS ── */
+{
+  nav: "Relations",
+  html: `
+<div class="doc-section">
+  <h2>Optimizing Relationships</h2>
+
+  <div class="method-block">
+    <span class="method-tag">.select_related(*fields)</span>
+    <p class="method-desc">For <strong>ForeignKey / OneToOne</strong>. Performs a SQL JOIN — loads related objects in the same query.</p>
+    <div class="code-block"><code><span class="code-comment"># 1 query: books + their authors in one JOIN</span>
+books = Book.objects.select_related('author').all()
+
+<span class="code-comment"># Traverse multiple levels</span>
+Book.objects.select_related('author__publisher')
+
+<span class="code-comment"># Select all FK relations (use carefully)</span>
+Book.objects.select_related()</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">.prefetch_related(*fields)</span>
+    <p class="method-desc">For <strong>ManyToMany / reverse ForeignKey</strong>. Runs a separate query per relation and joins in Python.</p>
+    <div class="code-block"><code><span class="code-comment"># 2 queries: libraries, then all related books</span>
+Library.objects.prefetch_related('books').all()
+
+<span class="code-comment"># With a custom Prefetch object for filtered prefetch</span>
+from django.db.models import Prefetch
+published = Book.objects.filter(is_published=True)
+Author.objects.prefetch_related(
+    Prefetch('book_set', queryset=published, to_attr='published_books')
+)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">Reverse relations</span>
+    <p class="method-desc">Access reverse FK and M2M from related objects. Default accessor: <code>modelname_set</code> or use <code>related_name</code>.</p>
+    <div class="code-block"><code><span class="code-comment"># Default reverse accessor (Book has FK to Author)</span>
+author = Author.objects.get(id=1)
+author.book_set.all()
+author.book_set.filter(pages__gt=300)
+author.book_set.count()
+
+<span class="code-comment"># With related_name='books'</span>
+author.books.all()</code></div>
+  </div>
+
+  <div class="info-card" style="margin-top:8px">
+    <h3>N+1 Problem</h3>
+    <ul>
+      <li>Iterating over a QuerySet and accessing FK fields inside a loop hits the DB once per row.</li>
+      <li>Fix: always use <code>select_related</code> for FK, <code>prefetch_related</code> for M2M before the loop.</li>
+      <li>Diagnose with <code>django-debug-toolbar</code> or <code>connection.queries</code>.</li>
+    </ul>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 11: ADVANCED ── */
+{
+  nav: "Advanced",
+  html: `
+<div class="doc-section">
+  <h2>Subqueries &amp; Exists</h2>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Subquery, OuterRef, Exists</span></div>
+  <div class="code-block"><code><span class="code-comment"># Subquery: annotate each author with their latest book title</span>
+latest = Book.objects.filter(
+    author=OuterRef('pk')
+).order_by('-published_date').values('title')[:1]
+
+Author.objects.annotate(latest_title=Subquery(latest))
+
+<span class="code-comment"># Exists: filter authors who have any published book</span>
+has_book = Book.objects.filter(author=OuterRef('pk'), is_published=True)
+Author.objects.filter(Exists(has_book))
+
+<span class="code-comment"># ~Exists for NOT EXISTS</span>
+Author.objects.filter(~Exists(has_book))</code></div>
+</div>
+
+<div class="doc-section">
+  <h2>Case / When — Conditional Expressions</h2>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db.models</span> <span class="kw">import</span> <span class="sym">Case, When, Value, IntegerField</span></div>
+  <div class="code-block"><code><span class="code-comment"># Annotate a category based on page count</span>
+Book.objects.annotate(
+    size=Case(
+        When(pages__lt=200, then=Value('short')),
+        When(pages__lt=500, then=Value('medium')),
+        default=Value('long'),
+        output_field=models.CharField(),
+    )
+)
+
+<span class="code-comment"># Conditional aggregation (count per category)</span>
+Author.objects.aggregate(
+    prolific=Count('id', filter=Q(book_count__gte=10)),
+    moderate=Count('id', filter=Q(book_count__lt=10)),
+)</code></div>
+</div>
+
+<div class="doc-section">
+  <h2>Transactions</h2>
+  <div class="import-line"><span class="kw">from</span> <span class="mod">django.db</span> <span class="kw">import</span> <span class="sym">transaction</span></div>
+  <div class="code-block"><code><span class="code-comment"># Atomic block — rolls back on any exception</span>
+with transaction.atomic():
+    author = Author.objects.create(name='New Author')
+    Book.objects.create(title='First Book', author=author)
+
+<span class="code-comment"># Decorator form</span>
+@transaction.atomic
+def create_author_with_book(name, title):
+    author = Author.objects.create(name=name)
+    return Book.objects.create(title=title, author=author)
+
+<span class="code-comment"># Savepoints for nested atomics</span>
+with transaction.atomic():
+    author = Author.objects.create(name='X')
+    try:
+        with transaction.atomic():
+            Book.objects.create(title='', author=author)  <span class="code-comment"># may fail</span>
+    except Exception:
+        pass  <span class="code-comment"># inner rolls back, outer still open</span></code></div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 12: RAW SQL ── */
+{
+  nav: "Raw SQL",
+  html: `
+<div class="doc-section">
+  <h2>Raw SQL &amp; Cursors</h2>
+  <p>When the ORM isn't expressive enough, Django provides first-class escape hatches to run SQL directly.</p>
+
+  <div class="method-block">
+    <span class="method-tag">.raw(sql)</span>
+    <p class="method-desc">Executes raw SQL and returns model instances. Supports parameter binding.</p>
+    <div class="code-block"><code><span class="code-comment"># Returns RawQuerySet of Author instances</span>
+authors = Author.objects.raw('SELECT * FROM compiler_author')
+
+<span class="code-comment"># With parameters (never string-format — use binding)</span>
+authors = Author.objects.raw(
+    'SELECT * FROM compiler_author WHERE name = %s', [name]
+)
+
+<span class="code-comment"># Map custom columns back to fields</span>
+authors = Author.objects.raw(
+    'SELECT id, full_name AS name FROM custom_author_view'
+)</code></div>
+  </div>
+
+  <div class="method-block">
+    <span class="method-tag">connection.cursor()</span>
+    <p class="method-desc">Full cursor access for schema operations, stored procedures, or non-model queries.</p>
+    <div class="code-block"><code>from django.db import connection
+
+with connection.cursor() as cursor:
+    <span class="code-comment"># Write</span>
+    cursor.execute(
+        "UPDATE compiler_author SET name = %s WHERE id = %s",
+        [new_name, author_id]
+    )
+    <span class="code-comment"># Read single row</span>
+    cursor.execute("SELECT name, bio FROM compiler_author WHERE id = %s", [1])
+    row = cursor.fetchone()   <span class="code-comment"># tuple</span>
+    <span class="code-comment"># Read all rows</span>
+    rows = cursor.fetchall()  <span class="code-comment"># list of tuples</span>
+    <span class="code-comment"># Dict cursor helper</span>
+    cols = [c[0] for c in cursor.description]
+    results = [dict(zip(cols, row)) for row in cursor.fetchall()]</code></div>
+  </div>
+</div>
+
+<div class="doc-section">
+  <h2>Useful Manager Methods</h2>
+  <div class="grid-2">
+    <div class="info-card">
+      <h3>QuerySet Evaluation</h3>
+      <ul>
+        <li><code>len(qs)</code> — evaluates and counts</li>
+        <li><code>list(qs)</code> — evaluates to list</li>
+        <li><code>bool(qs)</code> — True if any results</li>
+        <li><code>qs.exists()</code> — True if any results (cheap)</li>
+        <li><code>qs.count()</code> — COUNT(*) query</li>
+        <li><code>iter(qs)</code> — evaluate lazily</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Introspection</h3>
+      <ul>
+        <li><code>str(qs.query)</code> — print the SQL</li>
+        <li><code>qs.explain()</code> — query plan (EXPLAIN)</li>
+        <li><code>connection.queries</code> — all queries this request (DEBUG=True)</li>
+        <li><code>qs._result_cache</code> — None if not yet evaluated</li>
+      </ul>
+    </div>
+  </div>
+</div>`
+},
+
+/* ─────────────────────────────────────────────────────── 13: EXAMPLES ── */
+{
+  nav: "Examples",
+  html: `
+<div class="doc-section">
+  <h2>Practical Examples</h2>
+  <p>Use these samples in the ORM Studio terminal with the built-in tables.</p>
+
+  <div class="code-block">
+    <div class="code-label">Filter &amp; Count</div>
+    <code>Author.objects.filter(name__icontains='Rowling').count()</code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">Complex filter</div>
+    <code>Book.objects.filter(pages__gt=300, language='English').order_by('-pages')</code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">Aggregation</div>
+    <code>from django.db.models import Avg, Max, Min, Count
+Book.objects.aggregate(
+    avg=Avg('pages'), max=Max('pages'),
+    min=Min('pages'), total=Count('id')
+)</code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">Annotation + ordering</div>
+    <code>from django.db.models import Count
+Author.objects.annotate(n=Count('book')).order_by('-n')[:5]</code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">OR query with Q</div>
+    <code>from django.db.models import Q
+Book.objects.filter(Q(pages__gt=500) | Q(language='French'))</code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">values_list flat</div>
+    <code>Book.objects.values_list('title', flat=True).order_by('title')</code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">select_related</div>
+    <code>books = Book.objects.select_related('author').all()
+for b in books:
+    print(b.title, b.author.name)  <span class="code-comment"># no extra queries</span></code>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">Raw cursor</div>
+    <code>from django.db import connection
+with connection.cursor() as c:
+    c.execute("SELECT name FROM compiler_author")
+    print(c.fetchall())</code>
+  </div>
+</div>`
+},
+];
+
+/* ── BUILD SLIDES ── */
+const track = document.getElementById('slide-track');
+const dotNav = document.getElementById('dot-nav');
+const navLinksEl = document.getElementById('nav-links');
+const totalSlides = SLIDES.length;
+
+SLIDES.forEach((s, i) => {
+  const slide = document.createElement('div');
+  slide.className = 'slide';
+  slide.style.cssText = `height:calc(100vh - 54px);min-height:calc(100vh - 54px)`;
+  slide.innerHTML = `<div class="slide-inner">${s.html}</div>`;
+  track.appendChild(slide);
+
+  const dot = document.createElement('button');
+  dot.className = 'dot';
+  dot.title = s.nav;
+  dot.addEventListener('click', () => goTo(i));
+  dotNav.appendChild(dot);
+
+  const link = document.createElement('button');
+  link.className = 'nav-link';
+  link.textContent = s.nav;
+  link.addEventListener('click', () => goTo(i));
+  navLinksEl.appendChild(link);
+});
+
+let current = 0;
+let isAnimating = false;
+
+function goTo(idx) {
+  if (idx < 0 || idx >= totalSlides || idx === current) return;
+  current = idx;
+  render();
+}
+
+function render() {
+  const vh = document.getElementById('slide-viewport').offsetHeight;
+  track.style.transform = `translateY(-${current * vh}px)`;
+
+  document.querySelectorAll('.slide').forEach((s, i) => {
+    s.classList.remove('entering');
+    if (i === current) {
+      void s.offsetWidth;
+      s.classList.add('entering');
+    }
+  });
+
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === current);
+  });
+  document.querySelectorAll('.nav-link').forEach((l, i) => {
+    l.classList.toggle('active', i === current);
+  });
+
+  const pct = ((current + 1) / totalSlides) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('slide-counter').textContent = `${current + 1} / ${totalSlides}`;
+
+  const hint = document.getElementById('scroll-hint');
+  hint.style.opacity = current === totalSlides - 1 ? '0' : '0.7';
+}
+
+/* ── WHEEL NAVIGATION ── */
+let wheelTimeout = null;
+window.addEventListener('wheel', (e) => {
+  const slide = document.querySelectorAll('.slide')[current];
+  const atTop = slide.scrollTop === 0;
+  const atBottom = slide.scrollTop + slide.clientHeight >= slide.scrollHeight - 2;
+
+  if (e.deltaY > 0 && atBottom) {
+    if (wheelTimeout) return;
+    goTo(current + 1);
+    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 700);
+  } else if (e.deltaY < 0 && atTop) {
+    if (wheelTimeout) return;
+    goTo(current - 1);
+    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 700);
+  }
+});
+
+/* ── KEYBOARD ── */
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown') goTo(current + 1);
+  if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') goTo(current - 1);
+  if (e.key === 'Home') goTo(0);
+  if (e.key === 'End') goTo(totalSlides - 1);
+});
+
+/* ── TOUCH ── */
+let touchStartY = 0;
+window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, {passive:true});
+window.addEventListener('touchend', (e) => {
+  const dy = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(dy) > 50) goTo(current + (dy > 0 ? 1 : -1));
+}, {passive:true});
+
+/* ── RESIZE ── */
+window.addEventListener('resize', () => {
+  const vh = document.getElementById('slide-viewport').offsetHeight;
+  track.style.transition = 'none';
+  track.style.transform = `translateY(-${current * vh}px)`;
+  setTimeout(() => { track.style.transition = ''; }, 50);
+});
+
+/* ── INIT ── */
+render();
+
+// Fully hide loading screen after animation
+const ls = document.getElementById('loading-screen');
+if (ls) {
+  ls.addEventListener('animationend', (e) => {
+    if (e.animationName === 'loader-fade-out') {
+      ls.classList.add('hidden');
+      ls.style.display = 'none';
+    }
+  });
+}
+</script>
+</body>
+</html>

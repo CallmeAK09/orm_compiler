@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/save_models/', views.save_models, name='save_models'),
     path('api/execute/', views.execute_query, name='execute_query'),
     path('reset/', views.reset_session, name='reset_session'),
+    path('docs/', views.documentation, name='documentation'),
 ]
