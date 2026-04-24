@@ -7,6 +7,14 @@
 <title>ORM Documentation — ORM Studio</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect x='2' y='2' width='30' height='30' rx='7' stroke='%2300f5ff' stroke-width='1.5' fill='%23050a0f'/%3E%3Cpath d='M9 17 L15.5 10 L22 17 L15.5 24 Z' stroke='%2300f5ff' stroke-width='1.5' fill='rgba(0,245,255,0.07)'/%3E%3Cpath d='M17 10.5 L23.5 17 L17 23.5' stroke='%2300ff9f' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='17' cy='17' r='2.2' fill='%2300f5ff'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<script>
+(function() {
+  const savedTheme = localStorage.getItem('orm-studio-theme');
+  if (savedTheme === 'light') {
+    document.documentElement.classList.add('light-theme');
+  }
+})();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -26,6 +34,33 @@
   --beam-color:rgba(0,245,255,0.85);
   --beam-green:rgba(0,255,159,0.7);
 }
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES
+═══════════════════════════════════════════════════════ */
+.light-theme {
+  --bg-void:      #f1f5f9;
+  --bg-panel:     #ffffff;
+  --bg-surface:   #f8fafc;
+  --bg-elevated:  #f1f5f9;
+  --border-glow:  rgba(14, 165, 233, 0.2);
+  --border-dim:   rgba(14, 165, 233, 0.1);
+  --text-bright:  #0f172a;
+  --text-mid:     #475569;
+  --text-dim:     #94a3b8;
+  --neon-cyan:    #0ea5e9;
+  --neon-green:   #10b981;
+  --neon-blue:    #3b82f6;
+  --beam-color:   rgba(14, 165, 233, 0.6);
+  --beam-green:   rgba(16, 185, 129, 0.5);
+}
+.light-theme body::after { opacity: 0.3; }
+.light-theme body::before { opacity: 0.2; }
+.light-theme .doc-section { box-shadow: 0 4px 12px rgba(15,23,42,0.08); }
+.light-theme .info-card { background: #f8fafc; }
+.light-theme .code-block { background: #f1f5f9; border-color: rgba(14,165,233,0.1); }
+.light-theme .code-block code { color: #0369a1; }
+.light-theme #loading-screen { background: rgba(241, 245, 249, 0.8); }
 html,body{font-family:'JetBrains Mono',monospace;background:var(--bg-void);color:var(--text-bright);height:100%;overflow:hidden}
 
 /* Base text color — bright readable default */
@@ -155,6 +190,29 @@ nav.orm-nav{height:54px;background:var(--bg-panel);border-bottom:1px solid var(-
 }
 .back-btn svg { width: 14px; height: 14px; stroke: currentColor; }
 
+/* ═══════════════════════════════════════════════════════
+   THEME TOGGLE
+═══════════════════════════════════════════════════════ */
+.theme-toggle {
+  background: rgba(0,245,255,0.05);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  color: var(--neon-cyan);
+}
+.theme-toggle:hover {
+  background: rgba(0,245,255,0.1);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0,245,255,0.2);
+}
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .sun { display: none; }
+.theme-toggle .moon { display: block; }
+.light-theme .theme-toggle .sun { display: block; }
+.light-theme .theme-toggle .moon { display: none; }
+
 /* SLIDE CONTAINER */
 #slide-viewport{position:fixed;top:54px;left:0;right:0;bottom:0;overflow:hidden}
 #slide-track{display:flex;flex-direction:column;transition:transform 0.6s cubic-bezier(0.77,0,0.18,1);will-change:transform}
@@ -230,10 +288,60 @@ nav.orm-nav{height:54px;background:var(--bg-panel);border-bottom:1px solid var(-
 #progress-bar{position:fixed;bottom:0;left:0;right:0;height:2px;background:rgba(0,245,255,0.06);z-index:999}
 #progress-fill{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-green));transition:width 0.4s ease;width:0%}
 #slide-counter{position:fixed;bottom:12px;right:20px;font-size:11px;color:var(--text-dim);z-index:999;font-family:'Rajdhani',sans-serif;letter-spacing:2px}
-#dot-nav{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:999}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--text-dim);cursor:pointer;transition:all 0.3s;border:2px solid transparent;padding:0;box-sizing:content-box}
-.dot.active{background:var(--neon-cyan);box-shadow:0 0 12px rgba(0,245,255,0.8);transform:scale(1.3);border-color:rgba(0,245,255,0.3)}
-.dot:hover{background:var(--text-bright);transform:scale(1.2)}
+#dot-nav {
+  position: fixed;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 999;
+  align-items: flex-end;
+}
+.dot {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim) !important;
+  transition: all 0.3s;
+  position: relative;
+  text-align: right;
+  white-space: nowrap;
+}
+.dot::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: all 0.3s;
+}
+.dot.active {
+  color: var(--neon-cyan) !important;
+  transform: translateX(-10px);
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
+}
+.dot.active::after {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan);
+  width: 8px;
+  height: 8px;
+  right: -16px;
+}
+.dot:hover {
+  color: var(--text-bright) !important;
+}
 
 /* HINT */
 #scroll-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:var(--text-dim);font-size:11px;letter-spacing:3px;text-transform:uppercase;z-index:999;pointer-events:none;transition:opacity 0.5s}
@@ -272,7 +380,12 @@ nav.orm-nav{height:54px;background:var(--bg-panel);border-bottom:1px solid var(-
   <a href="/" class="orm-logo">
     <span class="orm-logo-text">ORM Studio</span>
   </a>
-  <div class="nav-links" id="nav-links"></div>
+  <div class="nav-links" style="margin-left: auto; display: flex; align-items: center;">
+    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
+  </div>
 </nav>
 
 <a href="/" class="back-btn" title="Back to Shell">
@@ -1096,15 +1209,9 @@ SLIDES.forEach((s, i) => {
 
   const dot = document.createElement('button');
   dot.className = 'dot';
-  dot.title = s.nav;
+  dot.textContent = s.nav;
   dot.addEventListener('click', () => goTo(i));
   dotNav.appendChild(dot);
-
-  const link = document.createElement('button');
-  link.className = 'nav-link';
-  link.textContent = s.nav;
-  link.addEventListener('click', () => goTo(i));
-  navLinksEl.appendChild(link);
 });
 
 let current = 0;
@@ -1130,9 +1237,6 @@ function render() {
 
   document.querySelectorAll('.dot').forEach((d, i) => {
     d.classList.toggle('active', i === current);
-  });
-  document.querySelectorAll('.nav-link').forEach((l, i) => {
-    l.classList.toggle('active', i === current);
   });
 
   const pct = ((current + 1) / totalSlides) * 100;
@@ -1183,6 +1287,16 @@ window.addEventListener('resize', () => {
   track.style.transition = 'none';
   track.style.transform = `translateY(-${current * vh}px)`;
   setTimeout(() => { track.style.transition = ''; }, 50);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-theme');
+      localStorage.setItem('orm-studio-theme', isLight ? 'light' : 'dark');
+    });
+  }
 });
 
 /* ── INIT ── */
